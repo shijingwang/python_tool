@@ -2,4 +2,5 @@ eclipse.preferences.version=1
 encoding//ETL/cas_site_import/cas_site.py=utf-8
 encoding//ETL/msds/html_format.py=utf-8
 encoding//common/mysql.py=utf-8
+encoding//spider/down_util2.py=utf-8
 encoding//spider/nmrdb_org_pdf_IE.py=utf-8

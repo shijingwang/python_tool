@@ -10,6 +10,7 @@ import re
 import csv
 import time
 import urllib
+import logging
 import datetime
 from webscraping import settings
 settings.log_file = settings.log_file.replace('webscraping.log', 'webscraping_%s.log' % datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -19,7 +20,10 @@ import win32gui, win32con, win32api, winGuiAuto
 import cPAMIE
 import random
 import itertools
+from tornado.options import define, options
 import hashlib
+from bs4 import BeautifulSoup
+from down_util2 import DownUtil2
 
 DELAY = 5
 TIME_OUT = 30
@@ -69,19 +73,19 @@ def download_and_save_pdf(D, url, pdf_path):
         try:
             download_counter = 2
             while True:
-                bytes = D.get(pdf_url, read_cache=False)  #download pdf
+                bytes = D.get(pdf_url, read_cache=False)  # download pdf
                 if bytes:
                     break
                 download_counter -= 1
                 if download_counter == 0:
                     break
             if bytes:
-                open(pdf_path, 'wb').write(bytes) #save pdf
+                open(pdf_path, 'wb').write(bytes)  # save pdf
             else:
-                common.logger.info("Download pdf failed. pdf_url: %s" % pdf_url)  #pdf download failed.
+                common.logger.info("Download pdf failed. pdf_url: %s" % pdf_url)  # pdf download failed.
         except Exception, e:
             print e
-            print "Error occurred in download and save pdf!"   #pdf download failed. 
+            print "Error occurred in download and save pdf!"  # pdf download failed. 
 
 def backup_and_rewrite_csv(source_file='', items_dict=adt.HashDict(int)):
     '''重写指定的csv文件，目的是去除文件末尾的不完全行，以免在此后读取该csv文件的数据行时发生csv.Error: newline inside string的错误。
@@ -112,9 +116,9 @@ def backup_and_rewrite_csv(source_file='', items_dict=adt.HashDict(int)):
         print 'Rewrite %s finished. total %d row writed.' % (input_csv, num)
         bak_csv = re.sub(r'\.csv$', '_bak.csv', input_csv)
         if os.path.exists(bak_csv):
-            os.remove(bak_csv)   #删除之前的同名备份文件
-        os.rename(input_csv, bak_csv)   #将当前的输入文件改名为备份文件
-        os.rename(output_csv, input_csv)   #将当前的输出文件改名为输入文件
+            os.remove(bak_csv)  # 删除之前的同名备份文件
+        os.rename(input_csv, bak_csv)  # 将当前的输入文件改名为备份文件
+        os.rename(output_csv, input_csv)  # 将当前的输出文件改名为输入文件
     except Exception, e:
         common.logger.error('Error occured inside backup_and_rewrite_csv(). %s' % str(e))
         return False
@@ -144,7 +148,7 @@ def scrape_nmrdb_org_pdf():
     
     result_csv = 'csvs/nmrdb_org_pdf.csv'
     processed = adt.HashDict(int)   
-    backup_and_rewrite_csv(source_file=result_csv, items_dict=processed)   # backup and repair result csv file
+    backup_and_rewrite_csv(source_file=result_csv, items_dict=processed)  # backup and repair result csv file
     
     use_cache = DEBUG
     D = download.Download(proxy_file='proxies.txt', num_retries=1, delay=DELAY, timeout=45, read_cache=use_cache, write_cache=use_cache)
@@ -190,7 +194,7 @@ def scrape_nmrdb_org_pdf():
             try:
                 hwnd = winGuiAuto.findTopWindows("Windows Internet Explorer")
                 if hwnd:
-                    win32api.SendMessage(hwnd[0], win32con.WM_CLOSE, 0, 0)   # 关闭IE窗口
+                    win32api.SendMessage(hwnd[0], win32con.WM_CLOSE, 0, 0)  # 关闭IE窗口
                 else:
                     break
             except Exception, e:
@@ -201,7 +205,7 @@ def scrape_nmrdb_org_pdf():
         ie = None
         return ie
     
-    def close_alter_window(elapsed_seconds=10):
+    def close_alter_window(elapsed_seconds=1):
         '''点击安全警告窗口中的“运行”按钮, 尝试3次失败后关闭该窗口
         '''
         try_num = 0
@@ -231,7 +235,7 @@ def scrape_nmrdb_org_pdf():
                 break
             if elapsed(start) > 10:
                 break
-            time.sleep(1)
+            time.sleep(1)   
 
     common.logger.info('Start scraping ......')
     # 先启动IE
@@ -249,7 +253,7 @@ def scrape_nmrdb_org_pdf():
             smiles_para = urllib.quote_plus(smiles_item)
             count_num = num_counter()
             print '[%d] processing smiles: %s' % (count_num, smiles_item)
-            #common.logger.info('[%d] processing smiles: %s' % (count_num, smiles_item))
+            # common.logger.info('[%d] processing smiles: %s' % (count_num, smiles_item))
         except IndexError:
             break
         
@@ -264,7 +268,8 @@ def scrape_nmrdb_org_pdf():
         
         do_num += 1
         url = 'http://www.nmrdb.org/predictor?smiles=%s' % smiles_para
-
+        url = 'C:\\Users\\Administrator\\Desktop\\nmr_origin\\predictor.htm'
+        # url = 'http://localhost:8080/nmr/predictor.htm'                                                                                                             
         hwd_ie = winGuiAuto.findTopWindows("Windows Internet Explorer")
         if not ie or not hwd_ie:
             ie = startup_ie()
@@ -275,20 +280,28 @@ def scrape_nmrdb_org_pdf():
                 continue
             hwd_ie = winGuiAuto.findTopWindows("Windows Internet Explorer")
         
-        #step1: 打开请求入口页面，等待页面开始载入数据(java程序运算中)，大概等待15秒左右，数据载入成功。
+        # step1: 打开请求入口页面，等待页面开始载入数据(java程序运算中)，大概等待15秒左右，数据载入成功。
         ie.navigate(url)
-        time.sleep(1)
-        #首次打开请求入口页面，会弹出一个安全警告窗口，要点击“运行”按钮关闭窗口。
-        close_alter_window()
+        # time.sleep(1)
+
+        # 首次打开请求入口页面，会弹出一个安全警告窗口，要点击“运行”按钮关闭窗口。
+        # time.sleep(1)
+        # close_alter_window()
         
-        #step2: 点击Get PDF，下载PDF文件。
+        
+        
+        # step2: 点击Get PDF，下载PDF文件。
         start = time.time()
         while hwd_ie:
             try:
-                time.sleep(2)
+                # time.sleep(2)
                 hwnd = winGuiAuto.findTopWindows(u"安全警告".encode('gbk'))
                 if hwnd:
                     close_alter_window(elapsed_seconds=0)
+                # 点击链接获取分子结构和图形
+                get_data_link = ie.elementFind('a', 'name', 'getresultdata')
+                ie.elementClick(get_data_link)
+                time.sleep(5)
                 text_tableformat_value = ie.textAreaGetValue('tableformat', 'value')
                 if text_tableformat_value:
                     btn_get_pdf = ie.elementFind('input', 'value', 'Get PDF')
@@ -306,17 +319,19 @@ def scrape_nmrdb_org_pdf():
             except Exception, e:
                 print e
             if elapsed(start) > 30:
-                #common.logger.error('[Step 2] Waiting too long. smiles_item[%d]: %s' % (count_num, smiles_item))
+                # common.logger.error('[Step 2] Waiting too long. smiles_item[%d]: %s' % (count_num, smiles_item))
                 break
             hwd_ie = winGuiAuto.findTopWindows("Windows Internet Explorer")
-        time.sleep(1)
+        time.sleep(5)
         
-        #step3: 点击下载按钮，下载并保存PDF到本地。
+        # step3: 点击下载按钮，下载并保存PDF到本地。
         download_try_num = 0
         start = time.time()
+        hwd_ie = winGuiAuto.findTopWindows("Windows Internet Explorer")
         while hwd_ie:
             is_invalid_pdf = False
             hwnd = winGuiAuto.findTopWindows(u"安全警告".encode('gbk'))
+            
             if hwnd:
                 close_alter_window(elapsed_seconds=0)
             try:
@@ -325,24 +340,43 @@ def scrape_nmrdb_org_pdf():
                 html = ''
                 common.logger.error('[Step 3] Failed to get html. smiles_item[%d]: %s \nError message: %s' % (count_num, smiles_item, str(e)))
             time.sleep(1)
-            if 'action=/cheminfo/servlet/org.cheminfo.hook.appli.HookServlet' in html:
+            if 'action=/cheminfo/servlet/org.cheminfo.hook.appli.HookServlet' in html or 'action=http://www.nmrdb.com/cheminfo/servlet/org.cheminfo.hook.appli.HookServlet':
+            # if  1==1:
+                # print html
+                soup = BeautifulSoup(html)
                 para_molfile = xpath.get(html, '//TEXTAREA[@name=molfile]').strip()
+                #para_molfile = soup.find('TEXTAREA', {'name':'molfile'})
+                print '-------------------------molfile'
+                print para_molfile
                 para_ethylvinylether = xpath.get(html, '//TEXTAREA[@name=ethylvinylether]').strip()
                 para_assignment = xpath.get(html, '//TEXTAREA[@name=assignment]').strip()
+                #para_assignment = soup.find('TEXTAREA', {'name':'assignment'})
+                print '-------------------------assignment'
+                print para_assignment
                 para_tableformat = xpath.get(html, '//TEXTAREA[@name=tableformat]').strip()
+                #para_tableformat = soup.find('TEXTAREA', {'name':'tableformat'})
+                print '-------------------------tableformat'
+                print para_tableformat
                 para_url = xpath.get(html, '//input[@name=url]/@value').replace('&amp;', '&').strip()
+                para_url = soup.find('input', {'name':'url'})['value']
+                print '-------------------------url'
+                print para_url
                 para_xmlString = xpath.get(html, '//INPUT[@name=xmlString]/@value').strip()
+                para_xmlString = soup.find("input", {'name':'xmlString'})['value']
+                print '-------------------------xmlString'
+                print para_xmlString
+                
                 if not para_xmlString:
                     para_xmlString = common.regex_get(html, r'<INPUT value="([^"]+)"\s*type=hidden name=xmlString>', normalized=False)
                 if not para_xmlString:
                     para_xmlString = common.regex_get(html, r"<INPUT value='([^']+)'\s*type=hidden name=xmlString>", normalized=False)
-                para_xmlString = common.unescape(para_xmlString).replace('&quot;', '"')
+                # para_xmlString = common.unescape(para_xmlString).replace('&quot;', '"')
                 para_resolution = xpath.get(html, '//input[@name=resolution]/@value').strip()
                 para_rotate = xpath.get(html, '//input[@name=rotate]/@value').strip()
                 get_pdf_url = 'http://www.nmrdb.org/cheminfo/servlet/org.cheminfo.hook.appli.HookServlet'
                 post_data2 = {}
                 post_data2['molfile'] = para_molfile
-                post_data2['ethylvinylether'] = para_ethylvinylether
+                # post_data2['ethylvinylether'] = para_ethylvinylether
                 post_data2['assignment'] = para_assignment
                 post_data2['tableformat'] = para_tableformat
                 post_data2['width'] = '800'
@@ -353,7 +387,11 @@ def scrape_nmrdb_org_pdf():
                 post_data2['rotate'] = para_rotate
                 post_data2['options'] = ''
                 post_data2['format'] = 'pdf'
+                du = DownUtil2()
+                du.downfile(get_pdf_url, post_data2, 'F:/file/', '.pdf')
+                '''
                 pdf_html = D.get(get_pdf_url, data=post_data2)
+                
                 if pdf_html and pdf_html.startswith('%PDF'):
                     open(pdf_path, 'wb').write(pdf_html)
                 else:
@@ -371,6 +409,7 @@ def scrape_nmrdb_org_pdf():
                 download_try_num += 1
                 if download_try_num >= 2:
                     break
+                '''
             if elapsed(start) > 45:
                 common.logger.error('[Step 3] Waiting too long. smiles_item[%d]: %s' % (count_num, smiles_item))
                 break
@@ -382,7 +421,7 @@ def scrape_nmrdb_org_pdf():
             writer2.flush()
             common.logger.error('PDF download failed. smiles_item[%d]: %s' % (count_num, smiles_item))
             
-        #step4: 关闭打开的IE浏览器，为下次处理作准备。
+        # step4: 关闭打开的IE浏览器，为下次处理作准备。
         if is_invalid_pdf or do_num % 10 == 0:
             ie = quit_ie(ie)
         time.sleep(1)
@@ -398,5 +437,18 @@ def scrape_nmrdb_org_pdf():
                        % (total_seconds / 3600, (total_seconds % 3600) / 60, (total_seconds % 3600) % 60, do_num, total_seconds / (do_num * 1.0)))
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
+
+    define("logfile", default="F:/Log/py.log", help="NSQ topic")
+    options.parse_command_line()
+    logfile = options.logfile
+    logging.info(u'写入的日志文件为:%s', logfile)
+    # 自动对日志文件进行分割
+    fmt = '%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s'
+    handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=100 * 1024 * 1024, backupCount=10)  # 实例化handler
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt)  # 实例化formatter
+    handler.setFormatter(formatter)  # 为handler添加formatter
+    logging.getLogger('').addHandler(handler)
     scrape_nmrdb_org_pdf()
     

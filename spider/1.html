@@ -1,0 +1,472 @@
+<BODY>
+<SCRIPT language=javascript>
+window.onresize=checkFrameSize;
+		
+function checkFrameSize() { 
+
+theIframes=document.getElementsByTagName("iframe");
+if (theIframes.length>0) {
+	if (theIframes[0].height>100) {
+	var winW = 630, winH = 460;
+	if (parseInt(navigator.appVersion)>3) {
+	 if (navigator.appName=="Netscape") {
+	  winH = window.innerHeight;
+	 }
+	 if (navigator.appName.indexOf("Microsoft")!=-1) {
+	  winH = document.body.offsetHeight-300;
+	 }
+	}
+
+
+	theIframes[0].height=winH-200;
+	}
+	}
+}
+
+</SCRIPT>
+
+<CENTER>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+<TBODY>
+<TR>
+<TD vAlign=top align=left>
+<TABLE style="BACKGROUND-REPEAT: repeat-x; BACKGROUND-POSITION: 50% top" cellSpacing=0 cellPadding=0 width="100%" background=./predictor_files/rigla_sus.jpg border=0>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-REPEAT: no-repeat; BACKGROUND-POSITION: left top" background=./predictor_files/colt_stanga_sus.jpg width=5></TD>
+<TD height=15 vAlign=top colSpan=3 align=right>
+<TABLE height=16 cellSpacing=1 cellPadding=2 border=0>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-REPEAT: no-repeat; BACKGROUND-POSITION: left bottom" bgColor=#ffa37f vAlign=middle background=./predictor_files/colt_butoane_sus.jpg align=center><A class=menu2 href="">&nbsp;&nbsp;Home&nbsp;&nbsp;</A></TD>
+<TD style="BACKGROUND-REPEAT: no-repeat; BACKGROUND-POSITION: left bottom" bgColor=#ffa37f vAlign=middle background=./predictor_files/colt_butoane_sus.jpg align=center><A class=menu2 href="http://www.nmrdb.com/contact">&nbsp;&nbsp;Contact&nbsp;&nbsp;</A></TD></TR></TBODY></TABLE></TD>
+<TD style="BACKGROUND-REPEAT: no-repeat; BACKGROUND-POSITION: right top" background=./predictor_files/colt_dreapta_sus.jpg width=7></TD></TR>
+<TR>
+<TD style="BACKGROUND-REPEAT: repeat-y; BACKGROUND-POSITION: left 50%" height=52 background=./predictor_files/rigla_stanga.gif>&nbsp;</TD>
+<TD class=lineover height=60 vAlign=middle colSpan=3 align=left>
+<TABLE cellSpacing=0 cellPadding=0 border=0>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-REPEAT: no-repeat; BACKGROUND-POSITION: left top" height=55 vAlign=middle background=./predictor_files/logo.jpg width=189 align=left>
+<TABLE height="100%" cellSpacing=0 cellPadding=0 width="100%" border=0>
+<TBODY>
+<TR>
+<TD height=33 width=42>&nbsp;</TD>
+<TD>&nbsp;</TD></TR>
+<TR>
+<TD>&nbsp;</TD>
+<TD class=motto vAlign=top align=left>Database of NMR spectra</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+<TD style="BACKGROUND-REPEAT: repeat-y; BACKGROUND-POSITION: right 50%" background=./predictor_files/rigla_dreapta.jpg>&nbsp;</TD></TR>
+<TR>
+<TD style="BACKGROUND-REPEAT: repeat-y; BACKGROUND-POSITION: left 50%" background=./predictor_files/rigla_stanga.gif>&nbsp;</TD>
+<TD colSpan=3>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+<TBODY>
+<TR>
+<TD vAlign=top align=left>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+<TBODY>
+<TR>
+<TD vAlign=top background=./predictor_files/bgtablemenu.gif align=left>
+<TABLE cellSpacing=2 cellPadding=3 border=0>
+<TBODY>
+<TR>
+<TD>
+<UL class=menu>
+<LI><A href="http://www.nmrdb.com/about">About</A> 
+<LI><A href="http://www.nmrdb.com/new_predictor">NMR Prediction (HTML5)</A> 
+<LI><A href="http://www.nmrdb.com/simulator">NMR Simulator</A> 
+<LI><A href="http://www.nmrdb.com/resurector">NMR Resurrector</A> 
+<LI class=current><SPAN>NMR Predictor</SPAN> 
+<LI><A href="http://www.nmrdb.com/contact">Contact</A> </LI></UL></TD></TR></TBODY></TABLE></TD></TR>
+<TR>
+<TD vAlign=top align=left>
+<DIV style="PADDING-BOTTOM: 0px; PADDING-TOP: 1px; PADDING-LEFT: 10px; PADDING-RIGHT: 10px">
+<H1>NMR Predictor</H1><!-- CONTENT COLUMN --><!-- CONTENT COLUMN -->
+<H2><A style="COLOR: red" href="http://www.nmrdb.org/new_predictor"><B>Try the new HTML5 only predictor that works also on iPad, Android, ... and does not require JAVA (only HTML5)!!!</B></A> </H2>This page allows to predict the spectrum from the chemical structure based on "Spinus". You may find more information on the authors <A href="http://www2.chemie.uni-erlangen.de/services/spinus/index.html" target=_blank>website</A>. 
+<P><B>References</B><BR></P>
+<UL>
+<LI>Banfi, D.; Patiny, L. <A href="http://dx.doi.org/10.2533/chimia.2008.280" target=_blank>www.nmrdb.org: Resurrecting and processing NMR spectra on-line</A> <I>Chimia</I>, <B>2008</B>, <I>62</I>(4), 280-281. 
+<LI>Aires-de-Sousa, M. Hemmer, J. Gasteiger, ¡°<A href="http://dx.doi.org/10.1021/ac010737m" target=_blank>Prediction of 1H NMR Chemical Shifts Using Neural Networks</A>¡±, <I>Analytical Chemistry</I>, <B>2002</B>, <I>74</I>(1), 80-90 most of the proton descriptors are explained. In that work they were used for the prediction of 1H NMR chemical shifts by counterpropagation neural networks. 
+<LI>Y. Binev, J. Aires-de-Sousa, "<A href="http://dx.doi.org/10.1021/ci034228s" target=_blank>Structure-Based Predictions of 1H NMR Chemical Shifts Using Feed-Forward Neural Networks</A>", <I>J. Chem. Inf. Comp. Sci.</I>, <B>2004</B>,&nbsp;<SPAN class=text><I><SPAN class=textitalics>44</SPAN></I><SPAN class=text>(3), 940-945 </SPAN></SPAN>the development of the FFNNs and the selection of descriptors is explained. 
+<LI>Y. Binev, M. Corvo, J. Aires-de-Sousa, "<A href="http://dx.doi.org/10.1021/ci034229k" target=_blank>The Impact of Available Experimental Data on the Prediction of 1H NMR Chemical Shifts by Neural Networks</A>", <I>J. Chem. Inf. Comp. Sci.</I>, <B>2004</B>, <SPAN class=text><I><SPAN class=textitalics>44</SPAN></I><SPAN class=text>(3), 946-949</SPAN></SPAN> the use of an additional memory is described. 
+<P></P></LI></UL>
+<SCRIPT language=javascript>
+		
+//		var SIMULATOR_URL="/tools/predictor.cgi";
+		var SIMULATOR_URL="http://www.nmrdb.org/service/predictor";
+		
+		var requester=null;
+		
+		
+		function initializeRequester() {
+		/* Even though the XMLHttpRequest object allows us to call the open() method multiple times, 
+			each object can really only be used for one call, as the onreadystatechange event doesn't 
+			update again once readyState changes to "4" (in Mozilla). Therefore, we have to create a new 
+			XMLHttpRequest object every time we want to make a remote call.
+		*/
+		
+		 /* Check for running connections */ 
+			if (requester != null && requester.readyState != 0 && requester.readyState != 4) {
+				requester.abort(); 
+			} 
+			
+			try { 
+				requester = new XMLHttpRequest(); 
+			} catch (error) { 
+				try { 
+					requester = new ActiveXObject("Microsoft.XMLHTTP"); 
+				} catch (error) { 
+					requester = null;
+					return false; 
+				} 
+			}
+			return true; 
+		}
+		
+
+		var option = 1;
+		function getPrediction(molfile,mode) {
+		        //castillo
+		        option=mode;
+		        molfile = document.nemo.canonizeMolfile(molfile);
+			if (initializeRequester()) {
+				/* Changes in the readyState variable can be monitored using a special onreadystatechange listener,
+				so we'll need to set up a function to handle the event when the readyState is changed.
+				*/
+
+				parameters="molfile="+escape(molfile);
+				requester.onreadystatechange = showPage;
+				
+				requester.open('POST', SIMULATOR_URL, true);
+				requester.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				requester.setRequestHeader("Content-length", parameters.length);
+				requester.setRequestHeader("Connection", "close");
+				requester.send(parameters);
+ 			} else {
+ 				alert("Unable to initialize Ajax");
+ 			}
+		}
+		
+		function showPage() {
+			// 0   Uninitialised
+			// 1   Loading
+			// 2   Loaded
+			// 3   Interactive
+			// 4   Completed
+			if (requester.readyState == 4) {
+				if (requester.status == 200) {
+				
+				
+					// we need to convert the answer to a inline assignment (ACS type) so that we can use it directly
+					var acsStyle="";
+					var tabStyle="";
+					var answer=requester.responseText;
+					document.form.tableformat.value=answer;
+
+					answer=answer.replace(/\n\r/g,"\r");
+					answer=answer.replace(/\n/g,"\r");
+					var lines=answer.split("\r");
+// alert(answer);
+
+					// we will create the tab-delimited prediciton data
+					for (var i=0; i<(lines.length-1); i++) {
+						var fields=lines[i].split("\t");
+						if (fields.length>3) {
+							tabStyle+=fields[0]+"\t1H\t"+fields[2]+"\t\t\t1\t";
+							var numberJ=fields[3];
+                                                        if (numberJ>0) {
+                                                                for (var j=0; j<numberJ; j++) {
+                                                                        tabStyle+=fields[j*3+4]+"\td\t"+fields[j*3+6]+"\t";
+                                                                }
+							}
+							tabStyle+="\r";
+						}
+					}
+					document.form.tableformat.value=tabStyle;
+
+
+					//TODO we should take into account symmetrical molcules
+						
+					// we will suppress the lines that are identical and add in the last column the integration
+					var numberIdentical=1;
+					for (var i=0; i<(lines.length-1); i++) {
+						
+						// we should not take into account the first column ...
+						var currentLine=lines[i];
+						var nextLine=lines[i+1];
+						
+						if (currentLine.indexOf("\t")>0) currentLine=currentLine.substring(currentLine.indexOf("\t"));
+						if (nextLine.indexOf("\t")>0) nextLine=nextLine.substring(nextLine.indexOf("\t"));
+						
+						if (currentLine==nextLine) {
+							numberIdentical++;
+							lines[i]="";
+						} else {
+							lines[i]+="\t"+numberIdentical;
+							numberIdentical=1;
+						}
+						
+						
+					}
+					
+					
+					for (var i=0; i<lines.length; i++) {
+						var fields=lines[i].split("\t");
+						
+						if (fields.length>3) {
+						
+							var hID=fields[0];
+							var cID=fields[1];
+							var delta=fields[2];
+							var numberJ=fields[3];
+							var integration=fields[numberJ*3+4];
+						
+							if (acsStyle.length>0) acsStyle+=", ";
+							
+							acsStyle+=delta;
+							if (numberJ>0) {
+								var multiplicity="";
+								var multiplet=2;
+								var coupling="";
+
+								var jCoupling=new Array();
+								for (var j=0; j<numberJ; j++) {
+									jCoupling[j]=fields[j*3+6];
+								}
+
+								jCoupling.sort(sortNumber);
+
+								for (var j=0; j<numberJ; j++) {
+									// what about the same coupling constant ???
+									// we should check and compile the multiplicity
+									if ((j<(numberJ-1)) && (jCoupling[j]==jCoupling[j+1])) {
+										multiplet+=1;
+									} else {
+										multiplicity+=getMultiplet(multiplet);
+										if (coupling.length>0) coupling+=", ";
+										coupling+="J="+jCoupling[j];
+										multiplet=2;
+									}
+								}
+								acsStyle+=" ("+cID+", "+integration+"H, "+multiplicity+", "+coupling+")";
+							} else {
+								acsStyle+=" ("+cID+", "+integration+"H)";
+							
+							}
+						}
+					}
+
+					document.form.assignment.value=acsStyle;
+					if(option==1){
+						document.nemo.clearAll();
+						document.nemo.setMolfile(document.form.molfile.value);
+						document.nemo.addSimulatedSpectrum(acsStyle,1);
+					}
+					else{
+						document.nemo.setMolfile(document.form.molfile.value);
+						document.nemo.addSimulatedSpectrum(document.form.tableformat.value,1);
+					}
+				}
+			}
+		}
+
+		function sortNumber(a, b) {
+			return b - a;
+		}
+
+		function getMultiplet(multiplet) {
+			switch (multiplet) {
+				case 1: 
+					return "s";
+				case 2: 
+					return "d";
+				case 3: 
+					return "t";
+				case 4: 
+					return "q";
+				case 5: 
+					return "quint";
+				case 6: 
+					return "hex";
+				case 7: 
+					return "hept";
+				case 8: 
+					return "o";
+				case 9: 
+					return "n";
+				default : 
+					return "m";
+			}
+		
+		}
+
+		function startEditor() {
+			window.open('/tools/jme/jme_window.html','JME','width=500,height=450,scrollbars=no,resizable=yes');
+		}
+	
+		function fromEditor(mol, smiles) {
+		
+		  if (smiles=="") {
+		    alert ("no molecule submitted");
+		    return;
+		  }
+		  document.form.molfile.value=mol;
+		  document.nemo.clearAll(); 
+		  var molcan = document.nemo.setMolfile(document.form.molfile.value);
+		  getPrediction(molcan,1);
+		}
+
+
+		</SCRIPT>
+
+<P></P>
+<FORM onsubmit="document.form.xmlString.value=document.nemo.getXML(); return true;" method=post name=form action=http://www.nmrdb.com/cheminfo/servlet/org.cheminfo.hook.appli.HookServlet target=_blank>
+<TABLE cellSpacing=2 cellPadding=0 width=172 border=0>
+<TBODY>
+<TR>
+<TD><APPLET name=nemo archive=predictor_files/nemo.jar codeBase="." code=org.cheminfo.hook.nemo.Nemo width=600 height=450><PARAM NAME="_cx" VALUE="15875"><PARAM NAME="_cy" VALUE="11906">
+																									You need to <a
+																										href="http://www.java.com/getjava/">install
+																										java 1.4</a> or later to see this applet.
+																								</APPLET></TD>
+<TD vAlign=top>
+<TABLE cellSpacing=1 cellPadding=3 width=180 border=0>
+<TBODY>
+<TR>
+<TH vAlign=top colSpan=2>How to proceed ?</TH></TR>
+<TR>
+<TH bgColor=#ffffff vAlign=top></TH>
+<TD bgColor=#ffffff>
+<P>If you are really in hurry, just click <A onclick="document.nemo.clearAll(); document.form.molfile.value=document.nemo.setMolFile(document.form.ethylvinylether.value);  getPrediction(document.form.molfile.value,1); return false;" href="http://www.nmrdb.com/predictor#">here</A> to get a predicted spectrum of ethylvinylether. </P></TD></TR>
+<TR>
+<TH bgColor=#cccccc vAlign=top>1.</TH>
+<TD bgColor=#cccccc><A onclick="startEditor(0); return false;" title="Draw fragment" href="http://www.nmrdb.com/predictor#">Draw a molecule</A> or test with <A onclick="document.nemo.clearAll(); document.form.molfile.value=document.nemo.setMolfile(document.form.ethylvinylether.value); getPrediction(document.form.molfile.value,1); return false;" style="BACKGROUND-COLOR: #f6f7ad" href="#" name=getresultdata>ethylvinylether</A>. 
+<P></P>
+<P>Molfile:<BR><TEXTAREA onclick=this.select() style="DISPLAY: block" rows=6 cols=40 name=molfile>
+Moldraw
+
+ 13 12  0  0  0  0  0  0  0  0999 V2000
+    0.0000    0.4505   -0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.6736   -0.4909   -0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.6474   -0.4909   -0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -3.3472    0.4767   -0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    3.2949    0.4767   -0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.6736   -1.4453   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.9810   -1.6451   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.3138   -1.6451   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -3.3464    1.8299   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -4.5195   -0.1992   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    4.4481    1.1540   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.9722   -0.6765   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.6176    1.6299   -0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  1  3  1  0  0  0  0
+  2  4  2  0  0  0  0
+  3  5  1  0  0  0  0
+  2  6  1  0  0  0  0
+  3  7  1  1  0  0  0
+  3  8  1  0  0  0  0
+  4  9  1  0  0  0  0
+  4 10  1  0  0  0  0
+  5 11  1  0  0  0  0
+  5 12  1  0  0  0  0
+  5 13  1  0  0  0  0
+M  END
+</TEXTAREA> <TEXTAREA style="DISPLAY: none" name=ethylvinylether>ethylvinylether.mol
+  
+
+  5  4  0  0  0  0  0  0  0  0999 V2000
+   -1.4289    0.2062    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.7145   -0.2062    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.2062    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.7145   -0.2062    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.4289    0.2062    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+  2  1  2  0      
+  3  2  1  0      
+  4  3  1  0      
+  5  4  1  0      
+M  END
+</TEXTAREA> </P>
+<P></P></TD></TR>
+<TR>
+<TH bgColor=#eeeeee vAlign=top>2.</TH>
+<TD bgColor=#eeeeee>You are now ready to predict the NMR spectrum. Just click <A onclick="getPrediction(document.form.molfile.value,1); return false;" href="http://www.nmrdb.com/predictor#">here</A> to proceed. </TD></TR>
+<TR>
+<TH bgColor=#cccccc vAlign=top>3.</TH>
+<TD bgColor=#cccccc>You may also copy the ACS assignment 
+<P><TEXTAREA onclick=this.select() rows=5 cols=40 name=assignment>6.707 (2, 1H, dd, J=14.689, J=7.597), 3.919 (3, 2H, q, J=7.012), 4.793 (4, 1H, dd, J=14.689, J=2.264), 4.738 (4, 1H, dd, J=7.597, J=2.264), 1.233 (5, 3H, t, J=7.012)</TEXTAREA> </P>Or a tab-delimited assignment 
+<P><TEXTAREA onclick=this.select() style="BACKGROUND-COLOR: #f6f7ad" rows=5 cols=40 name=tableformat>6	1H	6.707			1	9	d	14.689	10	d	7.597	
+7	1H	3.919			1	11	d	7.012	12	d	7.012	13	d	7.012	
+8	1H	3.919			1	11	d	7.012	12	d	7.012	13	d	7.012	
+9	1H	4.793			1	6	d	14.689	10	d	2.264	
+10	1H	4.738			1	6	d	7.597	9	d	2.264	
+11	1H	1.233			1	7	d	7.012	8	d	7.012	
+12	1H	1.233			1	7	d	7.012	8	d	7.012	
+13	1H	1.233			1	7	d	7.012	8	d	7.012	
+</TEXTAREA> </P></TD></TR>
+<TR>
+<TD></TD>
+<TD>You have a fast computer (or plenty of time), just try our new <A onclick=getPrediction(document.form.molfile.value,2);><B><FONT color=red>real spectrum simulator</FONT></B></A>. It will calculate the same spectrum but taking into account the second order effects. </TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>Size: <INPUT size=4 value=800 name=width> x <INPUT size=4 value=600 name=height> <INPUT type=hidden value=http://www.nmrdb.org/cheminfo/servlet/org.dbcreator.MainServlet?action=SendFieldAction&amp;tableName=mass&amp;fieldName=jcamp&amp;uniqueIDValue=1984 name=url> <INPUT type=hidden value="<nemo.SpectraDisplay uniqueID=&quot;15&quot; bottomLimit=&quot;0.0&quot; is2D=&quot;false&quot; vScale=&quot;false&quot; relWidth=&quot;1.0&quot; primaryColor=&quot;255,0,0&quot; nbLinks=&quot;0&quot; absoluteYScale=&quot;false&quot; movementType=&quot;3&quot; leftLimit=&quot;10.0&quot; relY=&quot;0.0&quot; relHeight=&quot;1.0&quot; relX=&quot;0.0&quot; topLimit=&quot;1.8586706980010867E7&quot; rightLimit=&quot;0.0&quot; hScale=&quot;true&quot; >&#13;&#10;<moldraw.ActMoleculeDisplay IDCode=&quot;gJQ@@eKS@@&quot; displayIDLevel=&quot;0&quot; primaryColor=&quot;NULL&quot; relWidth=&quot;0.2608695652173913&quot; relY=&quot;0.12437810945273632&quot; relHeight=&quot;0.373134328358209&quot; relX=&quot;0.08695652173913043&quot; EncodedCoordinates=&quot;!R@BM_HpAlWvsF@Ld&quot; expandedAtoms=&quot;&quot; >&#13;&#10;<moldraw.ActAtomEntity uniqueID=&quot;112&quot; atomID=&quot;0&quot; symmetryRank=&quot;5&quot; primaryColor=&quot;128,128,128&quot; nbLinks=&quot;0&quot; heterolink=&quot;true&quot; secondaryColor=&quot;0,255,0&quot; effectiveID=&quot;0&quot; erasable=&quot;false&quot; highlightPropagationType=&quot;3&quot; maximumPropagationLevel=&quot;2&quot; homolink=&quot;true&quot; >&#13;&#10;</moldraw.ActAtomEntity>&#13;&#10;<moldraw.ActAtomEntity uniqueID=&quot;113&quot; atomID=&quot;1&quot; symmetryRank=&quot;3&quot; primaryColor=&quot;128,128,128&quot; nbLinks=&quot;0&quot; heterolink=&quot;true&quot; secondaryColor=&quot;0,255,0&quot; effectiveID=&quot;1&quot; erasable=&quot;false&quot; highlightPropagationType=&quot;3&quot; maximumPropagationLevel=&quot;2&quot; homolink=&quot;true&quot; >&#13;&#10;</moldraw.ActAtomEntity>&#13;&#10;<moldraw.ActAtomEntity uniqueID=&quot;114&quot; atomID=&quot;2&quot; symmetryRank=&quot;1&quot; primaryColor=&quot;128,128,128&quot; nbLinks=&quot;0&quot; heterolink=&quot;true&quot; secondaryColor=&quot;0,255,0&quot; effectiveID=&quot;2&quot; erasable=&quot;false&quot; highlightPropagationType=&quot;3&quot; maximumPropagationLevel=&quot;2&quot; homolink=&quot;true&quot; >&#13;&#10;</moldraw.ActAtomEntity>&#13;&#10;<moldraw.ActAtomEntity uniqueID=&quot;115&quot; atomID=&quot;3&quot; symmetryRank=&quot;4&quot; primaryColor=&quot;128,128,128&quot; nbLinks=&quot;0&quot; heterolink=&quot;true&quot; secondaryColor=&quot;0,255,0&quot; effectiveID=&quot;3&quot; erasable=&quot;false&quot; highlightPropagationType=&quot;3&quot; maximumPropagationLevel=&quot;2&quot; homolink=&quot;true&quot; >&#13;&#10;</moldraw.ActAtomEntity>&#13;&#10;<moldraw.ActAtomEntity uniqueID=&quot;116&quot; atomID=&quot;4&quot; symmetryRank=&quot;2&quot; primaryColor=&quot;128,128,128&quot; nbLinks=&quot;0&quot; heterolink=&quot;true&quot; secondaryColor=&quot;0,255,0&quot; effectiveID=&quot;4&quot; erasable=&quot;false&quot; highlightPropagationType=&quot;3&quot; maximumPropagationLevel=&quot;2&quot; homolink=&quot;true&quot; >&#13;&#10;</moldraw.ActAtomEntity>&#13;&#10;</moldraw.ActMoleculeDisplay>&#13;&#10;<nemo.HorizontalScale nbLinks=&quot;0&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;16&quot; >&#13;&#10;</nemo.HorizontalScale>&#13;&#10;<nemo.VerticalScale nbLinks=&quot;0&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;17&quot; >&#13;&#10;</nemo.VerticalScale>&#13;&#10;<nemo.Spectra hasPredictionLabels=&quot;1&quot; isSmooth=&quot;true&quot; uniqueID=&quot;26&quot; integralsBaseArea=&quot;-9999.99841661152&quot; magFactor=&quot;0.9&quot; lastX=&quot;0.0&quot; relHeight=&quot;0.925&quot; isVertical=&quot;false&quot; firstX=&quot;10.0&quot; secondaryColor=&quot;NULL&quot; hasIntegrals=&quot;1&quot; relWidth=&quot;1.0&quot; relY=&quot;-0.024875621890547265&quot; integralsRelBottom=&quot;0.1344628210299852&quot; nbLinks=&quot;0&quot; relX=&quot;0.0&quot; lowerContour=&quot;-Infinity&quot; hasPeakLabels=&quot;1&quot; is2D=&quot;0&quot; primaryColor=&quot;0,0,0&quot; integralsMagFactor=&quot;1.0&quot; >&#13;&#10;<nemo.Spectra.Process>&#13;&#10;resurrectNMRSpectrum('[{&quot;assignment&quot;:&quot;2&quot;|&quot;startX&quot;:6.707|&quot;stopX&quot;:6.707|&quot;pattern&quot;:&quot;m&quot;|&quot;observe&quot;:4.0E8|&quot;referenceAtomID&quot;:1|&quot;nbPeaks&quot;:0|&quot;nmrJs&quot;:[{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:14.689|&quot;multiplicity&quot;:&quot;d&quot;}|{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:7.597|&quot;multiplicity&quot;:&quot;d&quot;}]|&quot;delta1&quot;:6.707|&quot;integralData&quot;:{&quot;to&quot;:6.707|&quot;value&quot;:1|&quot;from&quot;:6.707}|&quot;multiplicity&quot;:&quot;dd&quot;|&quot;nucleus&quot;:&quot;1H&quot;|&quot;units&quot;:&quot;PPM&quot;}|{&quot;assignment&quot;:&quot;3&quot;|&quot;startX&quot;:3.919|&quot;stopX&quot;:3.919|&quot;pattern&quot;:&quot;m&quot;|&quot;observe&quot;:4.0E8|&quot;referenceAtomID&quot;:2|&quot;nbPeaks&quot;:0|&quot;nmrJs&quot;:[{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:7.012|&quot;multiplicity&quot;:&quot;d&quot;}]|&quot;delta1&quot;:3.919|&quot;integralData&quot;:{&quot;to&quot;:3.919|&quot;value&quot;:2|&quot;from&quot;:3.919}|&quot;multiplicity&quot;:&quot;q&quot;|&quot;nucleus&quot;:&quot;1H&quot;|&quot;units&quot;:&quot;PPM&quot;}|{&quot;assignment&quot;:&quot;4&quot;|&quot;startX&quot;:4.793|&quot;stopX&quot;:4.793|&quot;pattern&quot;:&quot;m&quot;|&quot;observe&quot;:4.0E8|&quot;referenceAtomID&quot;:3|&quot;nbPeaks&quot;:0|&quot;nmrJs&quot;:[{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:14.689|&quot;multiplicity&quot;:&quot;d&quot;}|{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:2.264|&quot;multiplicity&quot;:&quot;d&quot;}]|&quot;delta1&quot;:4.793|&quot;integralData&quot;:{&quot;to&quot;:4.793|&quot;value&quot;:1|&quot;from&quot;:4.793}|&quot;multiplicity&quot;:&quot;dd&quot;|&quot;nucleus&quot;:&quot;1H&quot;|&quot;units&quot;:&quot;PPM&quot;}|{&quot;assignment&quot;:&quot;4&quot;|&quot;startX&quot;:4.738|&quot;stopX&quot;:4.738|&quot;pattern&quot;:&quot;m&quot;|&quot;observe&quot;:4.0E8|&quot;referenceAtomID&quot;:3|&quot;nbPeaks&quot;:0|&quot;nmrJs&quot;:[{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:7.597|&quot;multiplicity&quot;:&quot;d&quot;}|{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:2.264|&quot;multiplicity&quot;:&quot;d&quot;}]|&quot;delta1&quot;:4.738|&quot;integralData&quot;:{&quot;to&quot;:4.738|&quot;value&quot;:1|&quot;from&quot;:4.738}|&quot;multiplicity&quot;:&quot;dd&quot;|&quot;nucleus&quot;:&quot;1H&quot;|&quot;units&quot;:&quot;PPM&quot;}|{&quot;assignment&quot;:&quot;5&quot;|&quot;startX&quot;:1.233|&quot;stopX&quot;:1.233|&quot;pattern&quot;:&quot;m&quot;|&quot;observe&quot;:4.0E8|&quot;referenceAtomID&quot;:4|&quot;nbPeaks&quot;:0|&quot;nmrJs&quot;:[{&quot;assignmentTo&quot;:&quot;&quot;|&quot;coupling&quot;:7.012|&quot;multiplicity&quot;:&quot;d&quot;}]|&quot;delta1&quot;:1.233|&quot;integralData&quot;:{&quot;to&quot;:1.233|&quot;value&quot;:3|&quot;from&quot;:1.233}|&quot;multiplicity&quot;:&quot;t&quot;|&quot;nucleus&quot;:&quot;1H&quot;|&quot;units&quot;:&quot;PPM&quot;}]',4.0E8,0.0,10.0,1.0,32768);&#13;&#10;</nemo.Spectra.Process>&#13;&#10;<nemo.Integral nbLinks=&quot;0&quot; publicationValue=&quot;3.0&quot; stopIndex=&quot;28793&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;36&quot; startIndex=&quot;28661&quot; >&#13;&#10;</nemo.Integral>&#13;&#10;<nemo.Integral nbLinks=&quot;0&quot; publicationValue=&quot;1.0&quot; stopIndex=&quot;17291&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;34&quot; startIndex=&quot;17193&quot; >&#13;&#10;</nemo.Integral>&#13;&#10;<nemo.Integral nbLinks=&quot;0&quot; publicationValue=&quot;1.0&quot; stopIndex=&quot;17140&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;32&quot; startIndex=&quot;16984&quot; >&#13;&#10;</nemo.Integral>&#13;&#10;<nemo.Integral nbLinks=&quot;0&quot; publicationValue=&quot;2.0&quot; stopIndex=&quot;20021&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;30&quot; startIndex=&quot;19831&quot; >&#13;&#10;</nemo.Integral>&#13;&#10;<nemo.Integral nbLinks=&quot;0&quot; publicationValue=&quot;1.0&quot; stopIndex=&quot;10890&quot; primaryColor=&quot;0,0,255&quot; uniqueID=&quot;28&quot; startIndex=&quot;10690&quot; >&#13;&#10;</nemo.Integral>&#13;&#10;<nemo.SmartPeakLabel linkType1=&quot;0&quot; linkType0=&quot;0&quot; comment=&quot;&quot; nmrSignal1D=&quot;{&amp;quot;startX&amp;quot;:6.7348575,&amp;quot;assignment&amp;quot;:&amp;quot;2&amp;quot;,&amp;quot;pattern&amp;quot;:&amp;quot;dd&amp;quot;,&amp;quot;stopX&amp;quot;:6.679243844528198,&amp;quot;observe&amp;quot;:400,&amp;quot;nbPeaks&amp;quot;:4,&amp;quot;referenceAtomID&amp;quot;:1,&amp;quot;nmrJs&amp;quot;:[{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.596884078979471,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:14.688775863647052,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;}],&amp;quot;delta1&amp;quot;:6.707250869225142,&amp;quot;integralData&amp;quot;:{&amp;quot;to&amp;quot;:6.737498241192867,&amp;quot;value&amp;quot;:1,&amp;quot;from&amp;quot;:6.676501758807134},&amp;quot;multiplicity&amp;quot;:&amp;quot;dd&amp;quot;,&amp;quot;nucleus&amp;quot;:&amp;quot;1H&amp;quot;,&amp;quot;peaks&amp;quot;:[{&amp;quot;startX&amp;quot;:6.7348575,&amp;quot;endX&amp;quot;:6.734957144241333,&amp;quot;intensity&amp;quot;:2814758.9631820973,&amp;quot;x&amp;quot;:6.7348575},{&amp;quot;startX&amp;quot;:6.715865,&amp;quot;endX&amp;quot;:6.715965223846435,&amp;quot;intensity&amp;quot;:2566408.039009221,&amp;quot;x&amp;quot;:6.715865},{&amp;quot;startX&amp;quot;:6.698135000000001,&amp;quot;endX&amp;quot;:6.698235764923097,&amp;quot;intensity&amp;quot;:2618967.0402724645,&amp;quot;x&amp;quot;:6.698135000000001},{&amp;quot;startX&amp;quot;:6.6791425,&amp;quot;endX&amp;quot;:6.679243844528198,&amp;quot;intensity&amp;quot;:2720822.733879041,&amp;quot;x&amp;quot;:6.6791425}]}&quot; highlightPropagationType=&quot;1&quot; uniqueID=&quot;27&quot; peak3=&quot;6.6791425&quot; erasable=&quot;true&quot; publicationAssignment=&quot;2&quot; peak2=&quot;6.698135000000001&quot; peak1=&quot;6.715865&quot; stopXUnits=&quot;6.679243844528198&quot; peak0=&quot;6.7348575&quot; startXUnits=&quot;6.7348575&quot; heterolink=&quot;true&quot; nbPeaks=&quot;4&quot; predicted=&quot;false&quot; link1=&quot;113&quot; link0=&quot;28&quot; maximumPropagationLevel=&quot;2&quot; intensity3=&quot;2720822.733879041&quot; publicationType=&quot;&quot; intensity2=&quot;2618967.0402724645&quot; intensity1=&quot;2566408.039009221&quot; intensity0=&quot;2814758.9631820973&quot; nbLinks=&quot;2&quot; forceMassif=&quot;false&quot; pattern=&quot;0101010101010202&quot; primaryColor=&quot;255,0,255&quot; homolink=&quot;true&quot; >&#13;&#10;</nemo.SmartPeakLabel>&#13;&#10;<nemo.SmartPeakLabel linkType1=&quot;0&quot; linkType0=&quot;0&quot; comment=&quot;&quot; nmrSignal1D=&quot;{&amp;quot;startX&amp;quot;:3.9452949999999993,&amp;quot;assignment&amp;quot;:&amp;quot;3&amp;quot;,&amp;quot;pattern&amp;quot;:&amp;quot;q&amp;quot;,&amp;quot;stopX&amp;quot;:3.892891379852294,&amp;quot;observe&amp;quot;:400,&amp;quot;nbPeaks&amp;quot;:4,&amp;quot;referenceAtomID&amp;quot;:2,&amp;quot;nmrJs&amp;quot;:[{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.012,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.011999999999929,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.0118930053709505,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;}],&amp;quot;delta1&amp;quot;:3.91916525750393,&amp;quot;integralData&amp;quot;:{&amp;quot;to&amp;quot;:3.947935741192866,&amp;quot;value&amp;quot;:2,&amp;quot;from&amp;quot;:3.8900642588071332},&amp;quot;multiplicity&amp;quot;:&amp;quot;q&amp;quot;,&amp;quot;nucleus&amp;quot;:&amp;quot;1H&amp;quot;,&amp;quot;peaks&amp;quot;:[{&amp;quot;startX&amp;quot;:3.9452949999999993,&amp;quot;endX&amp;quot;:3.9454797749328607,&amp;quot;intensity&amp;quot;:2720139.5870881947,&amp;quot;x&amp;quot;:3.9452949999999993},{&amp;quot;startX&amp;quot;:3.9277649999999995,&amp;quot;endX&amp;quot;:3.927950309906006,&amp;quot;intensity&amp;quot;:8444275.785776803,&amp;quot;x&amp;quot;:3.9277649999999995},{&amp;quot;startX&amp;quot;:3.9102349999999997,&amp;quot;endX&amp;quot;:3.91042084487915,&amp;quot;intensity&amp;quot;:8017500.6226054,&amp;quot;x&amp;quot;:3.9102349999999997},{&amp;quot;startX&amp;quot;:3.892705,&amp;quot;endX&amp;quot;:3.892891379852294,&amp;quot;intensity&amp;quot;:2801810.0787940323,&amp;quot;x&amp;quot;:3.892705}]}&quot; highlightPropagationType=&quot;1&quot; uniqueID=&quot;29&quot; peak3=&quot;3.892705&quot; erasable=&quot;true&quot; publicationAssignment=&quot;3&quot; peak2=&quot;3.9102349999999997&quot; peak1=&quot;3.9277649999999995&quot; stopXUnits=&quot;3.892891379852294&quot; peak0=&quot;3.9452949999999993&quot; startXUnits=&quot;3.9452949999999993&quot; heterolink=&quot;true&quot; nbPeaks=&quot;4&quot; predicted=&quot;false&quot; link1=&quot;114&quot; link0=&quot;30&quot; maximumPropagationLevel=&quot;2&quot; intensity3=&quot;2801810.0787940323&quot; publicationType=&quot;&quot; intensity2=&quot;8017500.6226054&quot; intensity1=&quot;8444275.785776803&quot; intensity0=&quot;2720139.5870881947&quot; nbLinks=&quot;2&quot; forceMassif=&quot;false&quot; pattern=&quot;0101010101010104&quot; primaryColor=&quot;255,0,255&quot; homolink=&quot;true&quot; >&#13;&#10;</nemo.SmartPeakLabel>&#13;&#10;<nemo.SmartPeakLabel linkType1=&quot;0&quot; linkType0=&quot;0&quot; comment=&quot;&quot; nmrSignal1D=&quot;{&amp;quot;startX&amp;quot;:4.8141912499999995,&amp;quot;assignment&amp;quot;:&amp;quot;4&amp;quot;,&amp;quot;pattern&amp;quot;:&amp;quot;dd&amp;quot;,&amp;quot;stopX&amp;quot;:4.7719683017349235,&amp;quot;observe&amp;quot;:400,&amp;quot;nbPeaks&amp;quot;:4,&amp;quot;referenceAtomID&amp;quot;:3,&amp;quot;nmrJs&amp;quot;:[{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:2.2639654541013243,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:14.688775863647408,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;}],&amp;quot;delta1&amp;quot;:4.793241263594462,&amp;quot;integralData&amp;quot;:{&amp;quot;to&amp;quot;:4.816831991192866,&amp;quot;value&amp;quot;:1,&amp;quot;from&amp;quot;:4.769168008807133},&amp;quot;multiplicity&amp;quot;:&amp;quot;dd&amp;quot;,&amp;quot;nucleus&amp;quot;:&amp;quot;1H&amp;quot;,&amp;quot;peaks&amp;quot;:[{&amp;quot;startX&amp;quot;:4.8141912499999995,&amp;quot;endX&amp;quot;:4.8143495083236685,&amp;quot;intensity&amp;quot;:2675374.249630848,&amp;quot;x&amp;quot;:4.8141912499999995},{&amp;quot;startX&amp;quot;:4.80853125,&amp;quot;endX&amp;quot;:4.808689681053161,&amp;quot;intensity&amp;quot;:2814269.08990547,&amp;quot;x&amp;quot;:4.80853125},{&amp;quot;startX&amp;quot;:4.77746875,&amp;quot;endX&amp;quot;:4.777628129005431,&amp;quot;intensity&amp;quot;:2782589.7863266235,&amp;quot;x&amp;quot;:4.77746875},{&amp;quot;startX&amp;quot;:4.77180875,&amp;quot;endX&amp;quot;:4.7719683017349235,&amp;quot;intensity&amp;quot;:2615455.352528634,&amp;quot;x&amp;quot;:4.77180875}]}&quot; highlightPropagationType=&quot;1&quot; uniqueID=&quot;31&quot; peak3=&quot;4.77180875&quot; erasable=&quot;true&quot; publicationAssignment=&quot;4&quot; peak2=&quot;4.77746875&quot; peak1=&quot;4.80853125&quot; stopXUnits=&quot;4.7719683017349235&quot; peak0=&quot;4.8141912499999995&quot; startXUnits=&quot;4.8141912499999995&quot; heterolink=&quot;true&quot; nbPeaks=&quot;4&quot; predicted=&quot;false&quot; link1=&quot;115&quot; link0=&quot;32&quot; maximumPropagationLevel=&quot;2&quot; intensity3=&quot;2615455.352528634&quot; publicationType=&quot;&quot; intensity2=&quot;2782589.7863266235&quot; intensity1=&quot;2814269.08990547&quot; intensity0=&quot;2675374.249630848&quot; nbLinks=&quot;2&quot; forceMassif=&quot;false&quot; pattern=&quot;0101010101010202&quot; primaryColor=&quot;255,0,255&quot; homolink=&quot;true&quot; >&#13;&#10;</nemo.SmartPeakLabel>&#13;&#10;<nemo.SmartPeakLabel linkType1=&quot;0&quot; linkType0=&quot;0&quot; comment=&quot;&quot; nmrSignal1D=&quot;{&amp;quot;startX&amp;quot;:4.7503262500000005,&amp;quot;assignment&amp;quot;:&amp;quot;4&amp;quot;,&amp;quot;pattern&amp;quot;:&amp;quot;dd&amp;quot;,&amp;quot;stopX&amp;quot;:4.725834709663391,&amp;quot;observe&amp;quot;:400,&amp;quot;nbPeaks&amp;quot;:4,&amp;quot;referenceAtomID&amp;quot;:3,&amp;quot;nmrJs&amp;quot;:[{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:2.2639654541016796,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.596884078979826,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;}],&amp;quot;delta1&amp;quot;:4.73802343578165,&amp;quot;integralData&amp;quot;:{&amp;quot;to&amp;quot;:4.752966991192867,&amp;quot;value&amp;quot;:1,&amp;quot;from&amp;quot;:4.723033008807134},&amp;quot;multiplicity&amp;quot;:&amp;quot;dd&amp;quot;,&amp;quot;nucleus&amp;quot;:&amp;quot;1H&amp;quot;,&amp;quot;peaks&amp;quot;:[{&amp;quot;startX&amp;quot;:4.7503262500000005,&amp;quot;endX&amp;quot;:4.750486457328797,&amp;quot;intensity&amp;quot;:2767818.117698542,&amp;quot;x&amp;quot;:4.7503262500000005},{&amp;quot;startX&amp;quot;:4.744666250000001,&amp;quot;endX&amp;quot;:4.744826630058289,&amp;quot;intensity&amp;quot;:2581799.0446760794,&amp;quot;x&amp;quot;:4.744666250000001},{&amp;quot;startX&amp;quot;:4.73133375,&amp;quot;endX&amp;quot;:4.731494536933899,&amp;quot;intensity&amp;quot;:2810051.949127122,&amp;quot;x&amp;quot;:4.73133375},{&amp;quot;startX&amp;quot;:4.72567375,&amp;quot;endX&amp;quot;:4.725834709663391,&amp;quot;intensity&amp;quot;:2694441.3349118843,&amp;quot;x&amp;quot;:4.72567375}]}&quot; highlightPropagationType=&quot;1&quot; uniqueID=&quot;33&quot; peak3=&quot;4.72567375&quot; erasable=&quot;true&quot; publicationAssignment=&quot;4&quot; peak2=&quot;4.73133375&quot; peak1=&quot;4.744666250000001&quot; stopXUnits=&quot;4.725834709663391&quot; peak0=&quot;4.7503262500000005&quot; startXUnits=&quot;4.7503262500000005&quot; heterolink=&quot;true&quot; nbPeaks=&quot;4&quot; predicted=&quot;false&quot; link1=&quot;115&quot; link0=&quot;34&quot; maximumPropagationLevel=&quot;2&quot; intensity3=&quot;2694441.3349118843&quot; publicationType=&quot;&quot; intensity2=&quot;2810051.949127122&quot; intensity1=&quot;2581799.0446760794&quot; intensity0=&quot;2767818.117698542&quot; nbLinks=&quot;2&quot; forceMassif=&quot;false&quot; pattern=&quot;0101010101010202&quot; primaryColor=&quot;255,0,255&quot; homolink=&quot;true&quot; >&#13;&#10;</nemo.SmartPeakLabel>&#13;&#10;<nemo.SmartPeakLabel linkType1=&quot;0&quot; linkType0=&quot;0&quot; comment=&quot;&quot; nmrSignal1D=&quot;{&amp;quot;startX&amp;quot;:1.2505300000000001,&amp;quot;assignment&amp;quot;:&amp;quot;5&amp;quot;,&amp;quot;pattern&amp;quot;:&amp;quot;t&amp;quot;,&amp;quot;stopX&amp;quot;:1.2157380825805681,&amp;quot;observe&amp;quot;:400,&amp;quot;nbPeaks&amp;quot;:3,&amp;quot;referenceAtomID&amp;quot;:4,&amp;quot;nmrJs&amp;quot;:[{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.012,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:0,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.012000000000018,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;},{&amp;quot;assignmentTo&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;coupling&amp;quot;:7.011893005370862,&amp;quot;multiplicity&amp;quot;:&amp;quot;d&amp;quot;}],&amp;quot;delta1&amp;quot;:1.2332181106848357,&amp;quot;integralData&amp;quot;:{&amp;quot;to&amp;quot;:1.253170741192867,&amp;quot;value&amp;quot;:3,&amp;quot;from&amp;quot;:1.2128292588071332},&amp;quot;multiplicity&amp;quot;:&amp;quot;t&amp;quot;,&amp;quot;nucleus&amp;quot;:&amp;quot;1H&amp;quot;,&amp;quot;peaks&amp;quot;:[{&amp;quot;startX&amp;quot;:1.2505300000000001,&amp;quot;endX&amp;quot;:1.2507970126342762,&amp;quot;intensity&amp;quot;:8087603.173823943,&amp;quot;x&amp;quot;:1.2505300000000001},{&amp;quot;startX&amp;quot;:1.233,&amp;quot;endX&amp;quot;:1.2332675476074222,&amp;quot;intensity&amp;quot;:1.6853939864916548E7,&amp;quot;x&amp;quot;:1.233},{&amp;quot;startX&amp;quot;:1.21547,&amp;quot;endX&amp;quot;:1.2157380825805681,&amp;quot;intensity&amp;quot;:7929458.277527224,&amp;quot;x&amp;quot;:1.21547}]}&quot; highlightPropagationType=&quot;1&quot; uniqueID=&quot;35&quot; erasable=&quot;true&quot; publicationAssignment=&quot;5&quot; peak2=&quot;1.21547&quot; peak1=&quot;1.233&quot; stopXUnits=&quot;1.2157380825805681&quot; peak0=&quot;1.2505300000000001&quot; startXUnits=&quot;1.2505300000000001&quot; heterolink=&quot;true&quot; nbPeaks=&quot;3&quot; predicted=&quot;false&quot; link1=&quot;116&quot; link0=&quot;36&quot; maximumPropagationLevel=&quot;2&quot; publicationType=&quot;&quot; intensity2=&quot;7929458.277527224&quot; intensity1=&quot;1.6853939864916548E7&quot; intensity0=&quot;8087603.173823943&quot; nbLinks=&quot;2&quot; forceMassif=&quot;false&quot; pattern=&quot;0101010101010103&quot; primaryColor=&quot;255,0,255&quot; homolink=&quot;true&quot; >&#13;&#10;</nemo.SmartPeakLabel>&#13;&#10;</nemo.Spectra>&#13;&#10;</nemo.SpectraDisplay>&#13;&#10;" name=xmlString> <INPUT type=hidden value=72 name=resolution> <INPUT type=hidden value=1 name=rotate> <INPUT type=hidden name=options> <INPUT type=hidden value=pdf name=format> <INPUT onclick="document.form.rotate.value=0;document.form.resolution.value=72;document.form.format.value='png';document.form.options.value='nmrAcs,nmrTable';" class=smallbutton type=submit value="Get Image"> <INPUT onclick="document.form.rotate.value=1;document.form.width.value=1400;document.form.height.value=1000;document.form.format.value='png';document.form.resolution.value=100;document.form.options.value='print';" class=smallbutton type=submit value="Print A4"> <INPUT onclick="document.form.rotate.value=1;document.form.width.value=800;document.form.height.value=600;document.form.format.value='pdf';document.form.options.value='';" class=smallbutton style="BACKGROUND-COLOR: #f6f7ad" type=submit value="Get PDF"> <INPUT onclick="document.form.rotate.value=0;document.form.width.value=800;document.form.height.value=600;document.form.format.value='png';document.form.resolution.value=100;document.form.options.value='print,nmrAcs,nmrTable';" class=smallbutton type=submit value="Print Report"><BR></FORM>
+<FORM id=simulatorForm method=post name=simulatorForm action=http://www.nmrdb.com/simulator><TEXTAREA id=prediction style="DISPLAY: none" name=prediction></TEXTAREA> </FORM><TEXTAREA id=transfered style="DISPLAY: none"></TEXTAREA>
+<SCRIPT language=javascript>
+function prepareSimulator() {
+	document.simulatorForm.prediction.value=document.form.tableformat.value;
+}
+</SCRIPT>
+ 
+<P>We thanks <A href="http://www.mol-net.com/" target=_blank>Molecular Networks</A> for providing the predicting engine. </P>
+<SCRIPT language=javascript>
+
+	function setSmiles(smiles) {
+		if (initializeRequester()) {
+			requester.onreadystatechange = setMolfileFromWeb;				
+			var theUrl="/cheminfo/servlet/com.actelion.research.chem.MEAServlet?format=mol&smiles="+escape(smiles).replace(/%20/,"%2B");
+			requester.open("GET", theUrl, true);
+ 			requester.send(null);
+
+		} else {
+ 			alert("Unable to initialize Ajax");
+ 		}		
+	}
+
+	function setMolfileFromWeb() {
+		if (requester.readyState == 4) {
+			if (requester.status == 200) {
+				document.form.molfile.value = document.nemo.setMolfile(requester.responseText);
+				getPrediction(document.form.molfile.value,1);
+			}
+		}
+	}
+
+        var smiles=unescape("");
+        if (smiles.length>1) {
+                setSmiles(smiles);
+
+        }
+
+	var transfered=document.getElementById("transfered").innerHTML;
+	if (transfered && transfered.length>50) {
+		document.form.molfile.value = document.nemo.setMolfile(transfered);
+		getPrediction(document.form.molfile.value,1);
+	}
+
+</SCRIPT>
+</DIV></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+<TD style="BACKGROUND-REPEAT: repeat-y; BACKGROUND-POSITION: right 50%" background=./predictor_files/rigla_dreapta.jpg></TD></TR>
+<TR>
+<TD class=textcopyright bgColor=#e2e2e2 height=21 vAlign=middle colSpan=5 align=left>&nbsp;&nbsp;&nbsp;&nbsp; Copyright: Luc Patiny - Ecole Polytechnique F¨¦d¨¦rale de Lausanne - <A href="http://cheminformatics.epfl.ch/">cheminformatics.epfl.ch</A> </TD></TR>
+<TR>
+<TD style="BACKGROUND-REPEAT: repeat-y; BACKGROUND-POSITION: left 50%" height=9 background=./predictor_files/rigla_stanga.gif></TD>
+<TD vAlign=top colSpan=3 align=left>&nbsp;</TD>
+<TD style="BACKGROUND-REPEAT: repeat-y; BACKGROUND-POSITION: right 50%" background=./predictor_files/rigla_dreapta.jpg></TD></TR>
+<TR>
+<TD style="BACKGROUND-REPEAT: no-repeat; BACKGROUND-POSITION: left bottom" height=7 background=./predictor_files/colt_stanga_jos.jpg></TD>
+<TD style="BACKGROUND-REPEAT: repeat-x; BACKGROUND-POSITION: 50% bottom" height=7 background=./predictor_files/rigla_jos.jpg></TD>
+<TD style="BACKGROUND-REPEAT: repeat-x; BACKGROUND-POSITION: 50% bottom" height=7 background=./predictor_files/rigla_jos.jpg width=109></TD>
+<TD height=7 background=./predictor_files/rigla_jos.jpg></TD>
+<TD height=7 background=./predictor_files/colt_dreapta+jos.jpg></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></CENTER>
+<SCRIPT language=javascript>
+checkFrameSize();
+</SCRIPT>
+</BODY>
