@@ -11,7 +11,7 @@ class DownUtil2(object):
     def __init__(self):
         pass
 
-    def downfile(self, url, data, storage_path, extend_name):
+    def downfile(self, url, data, storage_path, file_name):
         start_time = int(time.time())
         logging.info(u'开始下载URL:%s的数据', url)
         result = {'code':0, 'path':''}
@@ -19,7 +19,7 @@ class DownUtil2(object):
             
             data = urllib.urlencode(data)  
             req = urllib2.Request(url, data)
-            response = urllib2.urlopen(req, timeout=60)
+            response = urllib2.urlopen(req, timeout=20)
             if response.code != 200:
                 raise Exception(u'http状态不出错', response.code)
             url = response.url
@@ -28,9 +28,7 @@ class DownUtil2(object):
             if clength == None or len(clength.strip()) == 0:
                 clength = '1'
             clength = int(clength)
-            f_name = url[url.rfind('/') + 1:]
-            f_name = 'nmr'
-            storage_path = storage_path + f_name + extend_name
+            storage_path = storage_path + file_name
             result['path'] = storage_path
             logging.info(u'URL地址:%s  存储路径:%s  文件大小为:%sM  文件类型:%s', url, storage_path, round(clength / (1024.0 * 1024), 2), ctype)
             f = open(storage_path, 'wb')
