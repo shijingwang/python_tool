@@ -13,14 +13,16 @@ class CasSite(object):
     
     def write_cas_data(self):
         logging.info("开始读取")
-        f = open('/home/kulen/Documents/cas_site.csv', 'rb')
+        f = open('/home/kulen/Documents/cas_site2.csv', 'rb')
         reader = csv.reader(f)
         counter = 0
         for row in reader:
             counter += 1
             if counter == 1:
                 continue
+            icounter = 0;
             while True:
+                icounter += 1
                 try:
                     logging.info("ID:%s Name:%s URL:%s", row[0], row[1], row[2])
                     param = {
@@ -42,6 +44,8 @@ class CasSite(object):
                         logging.info("关闭连接")
                     except Exception:
                         pass
+                if icounter >= 5 :
+                    break
         logging.info("完成数据读取")
 
 if __name__ == '__main__':
