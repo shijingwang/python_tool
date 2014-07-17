@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//ETL/cas_dict_check/cas_no.py=utf-8
+encoding//ETL/cas_dict_check/dict_check.py=utf-8
 encoding//ETL/cas_site_import/cas_site.py=utf-8
 encoding//ETL/msds/html_format.py=utf-8
 encoding//common/mysql.py=utf-8
