@@ -6,3 +6,7 @@ print p.match('1234-12-1')
 print p.match('1234-1-1')
 print p.match('56-40-6 (Parent)')
 print p.match('56-40-6abc')
+
+s = u'InChi'
+
+print s.startswith("InChi")

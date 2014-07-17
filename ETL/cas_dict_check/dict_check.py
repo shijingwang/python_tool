@@ -59,12 +59,18 @@ class DictCheck(object):
                     else:
                         # dict cas set
                         dc = dcs[0]
-                        if dc['smiles'] != cd['Canonical_SMILES'] or dc['inchi'] != cd['InChI']:
-                            smile_match = 0 if dc['smiles'] == cd['Canonical_SMILES'] else 1
-                            inchi_match = 0 if dc['inchi'] == cd['InChI'] else 1
-                            sql = "insert into etl (cas,diff_type,smile_match,source_smile,target_smile,inchi_match,source_inchi,target_inchi) values('%s',2,%s,'%s','%s',%s,'%s','%s')"
-                            sql = sql % (cd['cas'], smile_match, cd['Canonical_SMILES'], dc['smiles'], inchi_match, cd['InChI'], dc['inchi'])
-                            self.dict_source_db.execute(sql)
+                        try:
+                            if dc['smiles'] != cd['Canonical_SMILES'] or dc['inchi'] != cd['InChI']:
+                                if not dc['inchi'].startswith('InChI='):
+                                    dc['inchi'] = 'InChI=' + dc['inchi']
+                                smile_match = 0 if dc['smiles'] == cd['Canonical_SMILES'] else 1
+                                inchi_match = 0 if dc['inchi'] == cd['InChI'] else 1
+                                sql = "insert into etl (cas,diff_type,smile_match,source_smile,target_smile,inchi_match,source_inchi,target_inchi) values('%s',2,%s,'%s','%s',%s,'%s','%s')"
+                                sql = sql % (cd['cas'], smile_match, cd['Canonical_SMILES'], dc['smiles'], inchi_match, cd['InChI'], dc['inchi'])
+                                self.dict_source_db.execute(sql)
+                        except Exception, e:
+                            logging.error(u'写入数据时出错:%s', e)
+                            logging.error(traceback.format_exc())     
                     sql = "insert into mark (type,value) values (1, '%s') on duplicate key update value='%s'"
                     sql = sql % (cd['id'], cd['id'])
                     self.dict_source_db.execute(sql)
