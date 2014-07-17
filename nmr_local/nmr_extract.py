@@ -39,10 +39,8 @@ class Nmr(object):
     
     def __init__(self):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
-        self.totalmenu = win32gui.GetMenu(self.Mhandle)
-        self.file_menu = win32gui.GetSubMenu(self.totalmenu, 0)
-        self.structure_menu = win32gui.GetSubMenu(self.totalmenu, 4)
-        logging.info(u"Handle:%x menu:%x struc:%x", self.Mhandle, self.file_menu, self.structure_menu)
+        if self.Mhandle == 0:
+            self.startup_app() 
 
     
     def file_menu_command(self, command):
@@ -73,7 +71,7 @@ class Nmr(object):
             "13C": [22, u"第二种核磁图"],
         }
         cmd_ID = win32gui.GetMenuItemID(self.structure_menu, command_dict[command][0])
-        print "NMR Handle:%x" % cmd_ID
+        logging.info("NMR Handle:%x", cmd_ID)
         win32gui.PostMessage(self.Mhandle, win32con.WM_COMMAND, cmd_ID, 0)
     
     def open_mol(self, molfile):
@@ -95,17 +93,17 @@ class Nmr(object):
         time.sleep(0.5)
     
     
-    def generate_1h_image(self):
+    def generate_1h_image(self, filepath):
         self.structure_menu_command("1H")
         # 等待软件生成图片
         time.sleep(1)
-        self.save_to_image("C:\\Users\\Administrator\\Desktop\\cp_1h.png")
+        self.save_to_image(filepath)
         pass
     
-    def generate_13c_image(self):
+    def generate_13c_image(self, filepath):
         self.structure_menu_command("13C")
         time.sleep(1)
-        self.save_to_image("C:\\Users\\Administrator\\Desktop\\cp_13c.png")
+        self.save_to_image(filepath)
         pass
     
     def close_mol(self):
@@ -121,7 +119,7 @@ class Nmr(object):
         EDIT_handle = find_subHandle(Mhandle, [("ComboBoxEx32", 0), ("ComboBox", 0), ("Edit", 0)])  # 定位保存地址句柄
         TYPE_handle = find_subHandle(Mhandle, [("ComboBox", 1)])
           
-        print win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 16, 0)
+        win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 16, 0)
         time.sleep(0.5)
         if win32api.SendMessage(EDIT_handle, win32con.WM_SETTEXT, 0, os.path.abspath(filePath)) != 1:
             raise Exception("Set file opening path failed")
@@ -142,9 +140,8 @@ class Nmr(object):
         if Alert_handle==0:
             #未弹出相应的窗口
             return
-        print "Alert_handle:%x" % Alert_handle
         Btn_handle = find_subHandle(Alert_handle, [("Button", 1)])
-        print "Btn_handle:%x" % Btn_handle
+        logging.info("Alert_handle:%x  Btn_handle:%x", Alert_handle, Btn_handle)
         # win32gui.PostMessage(Alert_handle, win32con.WM_COMMAND, Btn_handle, 0)
         win32gui.SetForegroundWindow(Alert_handle)  
         (left, top, right, bottom) = win32gui.GetWindowRect(Btn_handle)
@@ -155,7 +152,30 @@ class Nmr(object):
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0)
         time.sleep(0.05)
     
-
+    def find_stop(self):
+        close_handle = win32gui.FindWindow("#32770", u"ChemBioDraw Ultra 12.0")
+        if close_handle == 0:
+            return
+        btn_handle = find_subHandle(close_handle, [("DirectUIHWND", 0), ("CtrlNotifySink", 9), ("Button", 0)])
+        logging.info("close_handle:%x btn_handle:%x", close_handle, btn_handle)
+        win32api.SendMessage(close_handle, win32con.WM_COMMAND, 1, btn_handle)
+        time.sleep(1)
+        self.startup_app()
+    
+    def startup_app(self):
+        self.Mhandle = win32gui.FindWindow("CSWFrame", None)
+        if self.Mhandle != 0:
+            return
+        win32api.ShellExecute(0, 'open', u'"C:\\Program Files (x86)\\CambridgeSoft\\ChemOffice2010\\ChemDraw\\ChemDraw.exe"', '','',1)
+        time.sleep(6)
+        self.Mhandle = win32gui.FindWindow("CSWFrame", None)
+        Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
+        logging.info("StartupEditHandle:%x", Image_handle)
+        win32gui.SendMessage(Image_handle, win32con.WM_CLOSE, 0, 0)
+        self.totalmenu = win32gui.GetMenu(self.Mhandle)
+        self.file_menu = win32gui.GetSubMenu(self.totalmenu, 0)
+        self.structure_menu = win32gui.GetSubMenu(self.totalmenu, 4)
+        logging.info(u"Handle:%x menu:%x struc:%x", self.Mhandle, self.file_menu, self.structure_menu)
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
@@ -171,13 +191,15 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     nmr = Nmr()
+    #nmr.find_stop()
+    #nmr.startup_app()
+    """
     nmr.open_mol("C:\\Users\\Administrator\\Desktop\\molfile\\23672-07-3.mol")
-    nmr.generate_1h_image()
+    nmr.generate_1h_image("C:\\Users\\Administrator\\Desktop\\cp_1h.png")
     time.sleep(1)
-    nmr.generate_13c_image()
+    nmr.generate_13c_image("C:\\Users\\Administrator\\Desktop\\cp_13c.png")
     time.sleep(1)
     nmr.close_mol()
     time.sleep(1)
-    # nmr.close_alert()
-    # nmr.save_to_image("C:\\Users\\Administrator\\Desktop\\cp.png")
+    """
     logging.info(u'程序运行完成')
