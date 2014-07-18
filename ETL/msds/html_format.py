@@ -7,7 +7,7 @@ class HtmlFormat(object):
     
     def cn_format(self):
         fp = "/home/kulen/Documents/设计样式/1.html"
-        fpw = "/home/kulen/Documents/设计样式/1_w.html"
+        fpw = "/home/kulen/Documents/设计样式/1_w2.html"
         fp_reader = open(fp)
         html_content = ''
         while 1:
@@ -21,16 +21,14 @@ class HtmlFormat(object):
         soup = BeautifulSoup(html_content);
         trs = soup.find_all("tr")
         table = soup.find('table')
-        table['border'] = '1px'
-        table['cellspacing'] = '0px'
-        table['width'] = '100%'
+        table['class'] = '_table_all'
         for tr in trs:
             td = tr.find('td', {'colspan':'2'})
             if not td:
                 td1 = tr.find_all('td')[0]
                 td2 = tr.find_all('td')[1]
-                td1['bgcolor'] = "red"
-                td1['align'] = "right"
+                td1['class'] = "_td_header"
+                td2['class'] = "_td_header_content"
             else:
                 tr.extract()
                 counter = 0
@@ -48,8 +46,11 @@ class HtmlFormat(object):
                     if check_value in [u'2.对环境的影响:', u'3.现场应急监测方法:', u'4.实验室监测方法:', u'5.环境标准:', u'6.应急处理处置方法:']:
                         counter += 1
                         child = child.wrap(soup.new_tag('b'))
+                        child ['class'] = "_b_title"
                         if counter > 1 :
-                            child.insert_before(soup.new_tag("hr"))
+                            hr_tag = soup.new_tag("hr")
+                            hr_tag['class'] = '_hr_split'
+                            child.insert_before(hr_tag)
                     previous = check_value
                 print type(td)
                 del td['colspan']
@@ -64,7 +65,7 @@ class HtmlFormat(object):
     
     def en_format(self):
         fp = "/home/kulen/Documents/设计样式/2.html"
-        fpw = "/home/kulen/Documents/设计样式/2_w.html"
+        fpw = "/home/kulen/Documents/设计样式/2_w2.html"
         fp_reader = open(fp)
         html_content = ''
         while 1:
@@ -77,15 +78,13 @@ class HtmlFormat(object):
         fp_writer = open(fpw, 'w')
         soup = BeautifulSoup(html_content);
         table = soup.find('table')
-        table['border'] = '1px'
-        table['cellspacing'] = '0px'
-        table['width'] = '100%'
+        table['class'] = '_en_table_all'
         trs = table.find_all('tr')
         for tr in trs:
             td1 = tr.find_all('td')[0]
             td2 = tr.find_all('td')[1]
-            td1['bgcolor'] = "red"
-            td1['align'] = "right"
+            td1['class'] = "_en_td_header"
+            td2['class'] = "_en_td_header_content"
         strongs = table.find_all('strong')
         for strong in strongs:
             strong.name = ''
@@ -103,10 +102,11 @@ class HtmlFormat(object):
         for strong in strongs:
             counter += 1
             if counter > 1:
-                strong.insert_before(soup.new_tag("hr")) 
-        table_sec2['border'] = '1px'
-        table_sec2['cellspacing'] = '0px'
-        table_sec2['width'] = '100%'    
+                strong['class'] = '_en_s_title'
+                hr_tag = soup.new_tag("hr")
+                hr_tag['class'] = '_en_hr_split'
+                strong.insert_before(hr_tag) 
+        table_sec2['class'] = '_en_table_sec2'   
         v = str(soup)
         fp_writer.write(v)
         fp_writer.close()
@@ -124,3 +124,4 @@ if __name__ == '__main__':
     
     cs = HtmlFormat()
     cs.en_format()
+    cs.cn_format()
