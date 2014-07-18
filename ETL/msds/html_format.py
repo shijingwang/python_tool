@@ -5,9 +5,15 @@ from bs4 import BeautifulSoup
 
 class HtmlFormat(object):
     
-    def cn_format(self):
+    def cn_format_to_file(self):
         fp = "/home/kulen/Documents/设计样式/1.html"
         fpw = "/home/kulen/Documents/设计样式/1_w2.html"
+        fp_writer = open(fpw, 'w')
+        fp_writer.write(self.cn_format(fp))
+        fp_writer.close()
+        
+    def cn_format(self, source):
+        fp = source
         fp_reader = open(fp)
         html_content = ''
         while 1:
@@ -17,7 +23,7 @@ class HtmlFormat(object):
             html_content += line
         fp_reader.close()
         # print html_content
-        fp_writer = open(fpw, 'w')
+        
         soup = BeautifulSoup(html_content);
         trs = soup.find_all("tr")
         table = soup.find('table')
@@ -63,13 +69,18 @@ class HtmlFormat(object):
                 table.insert_after(td)
         self.delete_all_link(soup) 
         v = str(soup)
-        fp_writer.write(v)
-        fp_writer.close()
         print 'Finish'
-    
-    def en_format(self):
+        return v
+
+    def en_format_to_file(self):
         fp = "/home/kulen/Documents/设计样式/2.html"
         fpw = "/home/kulen/Documents/设计样式/2_w2.html"
+        fp_writer = open(fpw, 'w')
+        fp_writer.write(self.cn_format(fp))
+        fp_writer.close()
+    
+    def en_format(self, source):
+        fp = source
         fp_reader = open(fp)
         html_content = ''
         while 1:
@@ -79,7 +90,6 @@ class HtmlFormat(object):
             html_content += line
         fp_reader.close()
         # print html_content
-        fp_writer = open(fpw, 'w')
         soup = BeautifulSoup(html_content);
         table = soup.find('table')
         table['class'] = '_en_table_1'
@@ -153,9 +163,7 @@ class HtmlFormat(object):
 
  '''
         v = v.replace(rv, "<br/>")
-        fp_writer.write(v)
-        fp_writer.close()
-        print 'Finish'
+        return v
     
     def delete_all_link(self, soup):
         links = soup.find_all('a')
@@ -173,6 +181,6 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     cs = HtmlFormat()
-    cs.en_format()
-    cs.cn_format()
+    cs.en_format_to_file()
+    cs.cn_format_to_file()
     
