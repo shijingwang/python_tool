@@ -27,16 +27,32 @@ class Extract(object):
             sql = sql % (molid, ftype, cas, fp)
             self.molbase_db.insert(sql)
     
-    def image_mark(self):
-        fileName = "/home/kulen/tmp/1659-31-0-1h.png"
+    def mark_all_image(self):
+        for f in self.file_list:
+            target = f.replace(".png", ".mark.png")
+            try:
+                self.image_mark(f, target)
+                os.rename(target,f)  
+            except Exception:
+                pass
+            
+    def delete_file(self, fp):
+        try:
+            if os.path.exists(fp):
+                os.remove(fp)
+        except Exception:
+            pass
+
+    def image_mark(self, source, target):
+        fileName = source
         logoName = "/home/kulen/tmp/logo_mark_40.png"
         logging.info(u'图片打水印:%s', fileName)
         im = Image.open(fileName)
         mark = Image.open(logoName)
         imWidth, imHeight = im.size
         markWidth, markHeight = mark.size
-        print im.size
-        print mark.size
+        #print im.size
+        #print mark.size
         if im.mode != 'RGBA':  
             im = im.convert('RGBA')
         if mark.mode != 'RGBA':  
@@ -62,8 +78,8 @@ class Extract(object):
                 if y + markHeight + 80 > imHeight:
                     continue
                 layer.paste(mark, (x, y))  
-        Image.composite(layer, im, layer).save("/home/kulen/tmp/1h.png", quality=90)
-        pass
+        Image.composite(layer, im, layer).save(target, quality=90)
+        logging.info(u'图片完成打水印:%s', fileName)
     
     def extract_pdf_data(self):
         pass
@@ -88,9 +104,10 @@ if __name__ == '__main__':
     
     extract = Extract()
     # extract.get_data('/home/kulen/NmrMsdsETL/2014-07-17/')
-    # extract.list_file_dir(1, "/home/kulen/NmrMsdsETL/2014-07-17")
+    extract.list_file_dir(1, "/home/kulen/NmrMsdsETL/2014-07-17")
     # extract.get_data('2014-07-17')
-    extract.image_mark()
-    
+    # extract.image_mark()
+    extract.mark_all_image()
+    logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     
