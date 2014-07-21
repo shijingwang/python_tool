@@ -41,6 +41,9 @@ class Nmr(object):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         if self.Mhandle == 0:
             self.startup_app() 
+        close_alert = self.__getattribute__('close_alert')
+        cat = threading.Thread(target=close_alert)
+        cat.start()
 
     
     def file_menu_command(self, command):
@@ -107,9 +110,6 @@ class Nmr(object):
         pass
     
     def close_mol(self):
-        close_alert = self.__getattribute__('close_alert')
-        cat = threading.Thread(target=close_alert)
-        cat.start()
         Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
         win32gui.SendMessage(Image_handle, win32con.WM_CLOSE, 0, 0)
     
@@ -120,37 +120,45 @@ class Nmr(object):
         TYPE_handle = find_subHandle(Mhandle, [("ComboBox", 1)])
           
         win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 16, 0)
-        time.sleep(0.5)
+        time.sleep(0.2)
         if win32api.SendMessage(EDIT_handle, win32con.WM_SETTEXT, 0, os.path.abspath(filePath)) != 1:
             raise Exception("Set file opening path failed")
-        time.sleep(0.5)
+        time.sleep(0.2)
         win32api.SendMessage(Mhandle, win32con.WM_COMMAND, 1, confirmBTN_handle)
-        time.sleep(0.5)
-        close_alert = self.__getattribute__('close_alert')
-        cat = threading.Thread(target=close_alert)
-        cat.start()
+        time.sleep(0.2)
         # 下面的方法会产生阻塞，所以需要开启新线程关闭窗口
         Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 1)])
         win32gui.SendMessage(Image_handle, win32con.WM_CLOSE, 0, 0)
         return
     
     def close_alert(self):
-        time.sleep(1)
-        Alert_handle = win32gui.FindWindow("#32770", u"ChemBioDraw Ultra")
-        if Alert_handle==0:
-            #未弹出相应的窗口
-            return
-        Btn_handle = find_subHandle(Alert_handle, [("Button", 1)])
-        logging.info("Alert_handle:%x  Btn_handle:%x", Alert_handle, Btn_handle)
-        # win32gui.PostMessage(Alert_handle, win32con.WM_COMMAND, Btn_handle, 0)
-        win32gui.SetForegroundWindow(Alert_handle)  
+        logging.info(u"启动关闭窗口进程")
+        while True:
+            Alert_handle = win32gui.FindWindow("#32770", u"ChemBioDraw Ultra")
+            if Alert_handle==0:
+                time.sleep(0.5)    
+                continue
+            logging.info(u"执行关闭窗口操作")
+            Btn_handle = find_subHandle(Alert_handle, [("Button", 1)])
+            logging.info("Alert_handle:%x  Btn_handle:%x", Alert_handle, Btn_handle)
+            # win32gui.PostMessage(Alert_handle, win32con.WM_COMMAND, Btn_handle, 0)
+            win32gui.SetForegroundWindow(Alert_handle)  
+            
+            win32api.keybd_event(9, 0, 0, 0)  # 右箭头
+            win32api.keybd_event(9, 0, win32con.KEYEVENTF_KEYUP, 0) 
+            time.sleep(0.2)
+            win32api.keybd_event(13, 0, 0, 0)  # 回车
+            win32api.keybd_event(13, 0, win32con.KEYEVENTF_KEYUP, 0)
+            time.sleep(0.2)
+        '''
         (left, top, right, bottom) = win32gui.GetWindowRect(Btn_handle)
         win32api.SetCursorPos((left + (right - left) / 2, top + (bottom - top) / 2)) 
-        time.sleep(0.3)
+        time.sleep(0.5)
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0) 
-        time.sleep(0.05)
+        time.sleep(0.1)
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0)
-        time.sleep(0.05)
+        time.sleep(0.1)
+        '''
     
     def find_stop(self):
         close_handle = win32gui.FindWindow("#32770", u"ChemBioDraw Ultra 12.0")

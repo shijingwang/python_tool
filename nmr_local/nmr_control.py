@@ -84,6 +84,7 @@ class NmrControl(object):
             self.db_molbase.update(usql)
         except Exception, e:
             self.nmr.find_stop()
+            self.nmr.startup_app()
             usql = 'update search_moldata set nmr_sf_status=2 where mol_id=%s' % mol_id
             self.db_molbase.update(usql)
             logging.error(u'生成mol_id:%s 核磁数据出错', mol_id, e);
