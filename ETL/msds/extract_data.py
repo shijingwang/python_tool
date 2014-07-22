@@ -50,7 +50,7 @@ class ExtractData(object):
             mv = '0'
         else:
             mv = mds[0]['value']
-        sql = 'select * from file_download where id>%s and status=1 order by id asc limit %s'
+        sql = 'select * from file_download where id>%s and status=1 and task_type=74 order by id asc limit %s'
         sql = sql % (mv, size)
         logging.info(u"sql语句为:%s", sql)
         # download data
@@ -71,7 +71,7 @@ class ExtractData(object):
         query_source_keys = str(source_set)
         query_source_keys = query_source_keys.replace("[", "").replace("]", "").replace("set", "")
         cp_data = []
-        if len(query_source_keys) > 0:
+        if len(query_source_keys) > 0 and len(source_set)>0:
             sql = 'select * from compound_product where _key in %s' % query_source_keys
             # logging.info(sql)
             cp_data = self.db_spider_data.query(sql)
@@ -105,10 +105,11 @@ class ExtractData(object):
                     if language == 'English':
                         content = self.html_fomrat.en_format(settings.MSDS_FILE_PATH + path)
                     else:
-                        content = self.html_fomrat.en_format(settings.MSDS_FILE_PATH + path)
-                    sql = "insert into search_msds (cas,language,content) values ('%s','%s','%s')" % (cas, language, content)
+                        content = self.html_fomrat.cn_format(settings.MSDS_FILE_PATH + path)
+                    sql = "insert into search_msds (cas,language,content) values (%s,%s,%s)"
                     # logging.info(sql)
-                    self.db_molbase.execute(sql)
+                    # self.db_molbase.execute(sql)
+                    self.db_molbase.insertmany(sql, [(cas, language, content)])
                 else:
                     sql = "insert into search_msds (cas,language,link_name,link) values ('%s','%s','%s','%s')" % (cas, language, self.company_type[file_type], url)
                     # logging.info(sql)

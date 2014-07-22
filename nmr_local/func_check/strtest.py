@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-s = "H2OC3"
+s = "H2OCH3"
 print s.find("H")
-print 'S' in s
+print s.rfind('H')

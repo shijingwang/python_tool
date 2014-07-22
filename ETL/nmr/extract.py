@@ -11,7 +11,7 @@ import settings
 class Extract(object):
     
     def __init__(self):
-        self.molbase_db = ConUtil.connect_mysql(settings.MYSQL_MOLBASE_DEV)
+        self.molbase_db = ConUtil.connect_mysql(settings.MYSQL_MOLBASE)
         self.file_list = []
         
     
@@ -32,7 +32,7 @@ class Extract(object):
             target = f.replace(".png", ".mark.png")
             try:
                 self.image_mark(f, target)
-                os.rename(target,f)  
+                os.rename(target, f)  
             except Exception:
                 pass
             
@@ -43,16 +43,20 @@ class Extract(object):
         except Exception:
             pass
 
+    # TODO 将来依据图片的大小，可以选择相应的水印图片
     def image_mark(self, source, target):
         fileName = source
-        logoName = "/home/kulen/tmp/logo_mark_40.png"
+        logoName = "/home/kulen/Documents/mark_logov3/logov3_60.png"
         logging.info(u'图片打水印:%s', fileName)
         im = Image.open(fileName)
         mark = Image.open(logoName)
         imWidth, imHeight = im.size
+        if imWidth < 800 or imHeight < 400:
+            logging.info(u'图片:%s 过小，不打水印', source)
+            return
         markWidth, markHeight = mark.size
-        #print im.size
-        #print mark.size
+        print im.size
+        print mark.size
         if im.mode != 'RGBA':  
             im = im.convert('RGBA')
         if mark.mode != 'RGBA':  
@@ -60,24 +64,31 @@ class Extract(object):
         layer = Image.new('RGBA', im.size, (0, 0, 0, 0))  
         x = 0
         y = 0
-        while y < imHeight:
-            x = 0
-            if y == 0:
-                y += 150
-            else:
-                y += 300
-            while x < imWidth:
-                if x == 0:
-                    x += 250
-                else:
-                    x += 500
-                if x > imWidth:
-                    continue
-                if x + markWidth + 150 > imWidth:
-                    continue
-                if y + markHeight + 80 > imHeight:
-                    continue
-                layer.paste(mark, (x, y))  
+        # 处理nmr抓取的图片
+        if imWidth <= 1200 and imHeight <= 1000:
+            x = imWidth - markWidth - 30
+            y = imHeight - markHeight - 25
+            mark = Image.open("/home/kulen/Documents/mark_logov3/logov3_100.png")
+            layer.paste(mark, (x, y))
+        # 处理ChemDraw生成的图片
+        elif imWidth > 1200 and imHeight > 1000:
+            ynum = imHeight / 1000
+            xnum = imWidth / 950
+            print "xnum:%s ynum:%s" % (xnum, ynum)
+            yunit = imHeight / ynum
+            xunit = imWidth / xnum
+            print "xunit:%s yunit:%s" % (xunit, yunit)
+            i = 0;
+            while i < ynum:
+                j = 0
+                print '-----------'
+                while j < xnum:
+                    y = i * yunit + (yunit / 2 - markHeight / 2)
+                    x = j * xunit + (xunit / 2 - markWidth / 2)
+                    print "X:%s Y:%s" % (x, y)
+                    layer.paste(mark, (x, y))
+                    j += 1
+                i += 1
         Image.composite(layer, im, layer).save(target, quality=90)
         logging.info(u'图片完成打水印:%s', fileName)
     
@@ -104,10 +115,12 @@ if __name__ == '__main__':
     
     extract = Extract()
     # extract.get_data('/home/kulen/NmrMsdsETL/2014-07-17/')
-    extract.list_file_dir(1, "/home/kulen/NmrMsdsETL/2014-07-17")
+    # extract.list_file_dir(1, "/home/kulen/NmrMsdsETL/pdf_reader")
     # extract.get_data('2014-07-17')
     # extract.image_mark()
-    extract.mark_all_image()
+    # extract.mark_all_image()
+    # extract.image_mark('/home/kulen/NmrMsdsETL/1.png', '/home/kulen/NmrMsdsETL/1m.png')
+    extract.image_mark('/home/kulen/NmrMsdsETL/3.png', '/home/kulen/NmrMsdsETL/3m.png')
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     

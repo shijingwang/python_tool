@@ -6,10 +6,19 @@ from bs4 import BeautifulSoup
 class HtmlFormat(object):
     
     def cn_format_to_file(self):
-        fp = "/home/kulen/Documents/设计样式/1.html"
-        fpw = "/home/kulen/Documents/设计样式/1_w2.html"
+        fp = "/home/kulen/Documents/设计样式/96.html"
+        fpw = "/home/kulen/Documents/设计样式/96_w2.html"
         fp_writer = open(fpw, 'w')
+        start = '''<html>
+<head>
+<meta charset="utf-8"/>
+</head>
+<body>'''
+        fp_writer.write(start)
         fp_writer.write(self.cn_format(fp))
+        stop = '''</body>
+</html>'''
+        fp_writer.write(stop)
         fp_writer.close()
         
     def cn_format(self, source):
@@ -50,8 +59,8 @@ class HtmlFormat(object):
                         # child.extract()
                         # previous = ''
                         pass
-                    print check_value
-                    print '------------------'
+                    #print check_value
+                    #print '------------------'
                     if check_value in [u'2.对环境的影响:', u'3.现场应急监测方法:', u'4.实验室监测方法:', u'5.环境标准:', u'6.应急处理处置方法:']:
                         counter += 1
                         child = child.wrap(soup.new_tag('b'))
@@ -61,7 +70,7 @@ class HtmlFormat(object):
                             hr_tag['class'] = '_hr_split_' + str(counter)
                             child.insert_before(hr_tag)
                     previous = check_value
-                print type(td)
+                #print type(td)
                 del td['colspan']
                 td.name = 'div'
                 td['class'] = '_div_content'
@@ -181,6 +190,6 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     cs = HtmlFormat()
-    cs.en_format_to_file()
+    #cs.en_format_to_file()
     cs.cn_format_to_file()
     
