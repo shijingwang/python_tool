@@ -120,7 +120,9 @@ if __name__ == '__main__':
     # extract.image_mark()
     # extract.mark_all_image()
     # extract.image_mark('/home/kulen/NmrMsdsETL/1.png', '/home/kulen/NmrMsdsETL/1m.png')
-    extract.image_mark('/home/kulen/NmrMsdsETL/3.png', '/home/kulen/NmrMsdsETL/3m.png')
+    # extract.image_mark('/home/kulen/NmrMsdsETL/3.png', '/home/kulen/NmrMsdsETL/3m.png')
+    extract.list_file_dir(1, "/home/kulen/NmrMsdsETL/nmrdb_file_image")
+    extract.mark_all_image()
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     
