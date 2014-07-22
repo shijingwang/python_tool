@@ -146,7 +146,7 @@ class Nmr(object):
         win32gui.SetForegroundWindow(Alert_handle)  
         (left, top, right, bottom) = win32gui.GetWindowRect(Btn_handle)
         win32api.SetCursorPos((left + (right - left) / 2, top + (bottom - top) / 2)) 
-        time.sleep(0.5)
+        time.sleep(0.3)
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0) 
         time.sleep(0.05)
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0)
@@ -167,7 +167,7 @@ class Nmr(object):
         if self.Mhandle != 0:
             return
         win32api.ShellExecute(0, 'open', u'"C:\\Program Files (x86)\\CambridgeSoft\\ChemOffice2010\\ChemDraw\\ChemDraw.exe"', '','',1)
-        time.sleep(6)
+        time.sleep(10)
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
         logging.info("StartupEditHandle:%x", Image_handle)

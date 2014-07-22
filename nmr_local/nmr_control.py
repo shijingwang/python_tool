@@ -5,6 +5,7 @@ import logging
 import time
 import traceback
 import os
+import datetime
 from nmr_extract import Nmr
 from tornado.options import define, options
 
@@ -59,15 +60,19 @@ class NmrControl(object):
                 raise Exception(u'没有Mol数据:%s' % mol_id, 555)
             sd = sdata[0]
             mol_path = str(settings.MOL_FILE_PATH + '%s.mol' % mol_id)
+            mol_path = mol_path.replace("/", "\\")
             write_mol = open(mol_path, 'wb')
             write_mol.write(sd['struc'])
             write_mol.close()
-            pic_path = settings.NMR_PIC_PATH + storage_dir(mol_id) + '/'
+            days = datetime.datetime.now().strftime('%Y-%m-%d')
+            pic_path = settings.NMR_PIC_PATH + days + '/' + storage_dir(mol_id) + '/'
             if not os.path.exists(pic_path):
                 os.makedirs(pic_path)
             pic_path = pic_path.replace("/", "\\")
             pic_1h = str(pic_path + cas_no + '-1h.png')
             pic_13c = str(pic_path + cas_no + '-13c.png')
+            self.delete_file(pic_1h)
+            self.delete_file(pic_13c)
             self.nmr.open_mol(mol_path)
             self.nmr.generate_1h_image(pic_1h)
             time.sleep(1)
@@ -75,7 +80,6 @@ class NmrControl(object):
             time.sleep(1)
             self.nmr.close_mol()
             time.sleep(1)
-            os.remove(mol_path)
             usql = 'update search_moldata set nmr_sf_status=1 where mol_id=%s' % mol_id
             self.db_molbase.update(usql)
         except Exception, e:
@@ -85,8 +89,16 @@ class NmrControl(object):
             logging.error(u'生成mol_id:%s 核磁数据出错', mol_id, e);
             logging.error(traceback.format_exc())
         finally:
+            self.delete_file(mol_path)
             msql = 'insert into mark (type, value) values (100,%s) on duplicate key update value=%s' % (mol_id, mol_id)
             self.db_molbase.update(msql)
+
+    def delete_file(self,fp):
+        try:
+            if os.path.exists(fp):
+                os.remove(fp)
+        except Exception:
+            pass
         
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
