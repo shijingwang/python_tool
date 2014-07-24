@@ -71,7 +71,7 @@ class ExtractData(object):
         query_source_keys = str(source_set)
         query_source_keys = query_source_keys.replace("[", "").replace("]", "").replace("set", "")
         cp_data = []
-        if len(query_source_keys) > 0 and len(source_set)>0:
+        if len(query_source_keys) > 0 and len(source_set) > 0:
             sql = 'select * from compound_product where _key in %s' % query_source_keys
             # logging.info(sql)
             cp_data = self.db_spider_data.query(sql)
@@ -90,6 +90,7 @@ class ExtractData(object):
                 cas = d['name3'].strip()
                 language = d['language']
                 source_key = d['source_key']
+                url = ''
                 path = ''
                 for d1 in data:
                     if d1['_key'] == d['storage_key']:
@@ -106,12 +107,14 @@ class ExtractData(object):
                         content = self.html_fomrat.en_format(settings.MSDS_FILE_PATH + path)
                     else:
                         content = self.html_fomrat.cn_format(settings.MSDS_FILE_PATH + path)
-                    sql = "insert into search_msds (cas,language,content) values (%s,%s,%s)"
+                    sql = "insert into search_msdsv2 (cas,language,check_key,content) values (%s,%s,%s,%s)"
                     # logging.info(sql)
                     # self.db_molbase.execute(sql)
-                    self.db_molbase.insertmany(sql, [(cas, language, content)])
+                    self.db_molbase.insertmany(sql, [(cas, language, d['_key'], content)])
                 else:
-                    sql = "insert into search_msds (cas,language,link_name,link) values ('%s','%s','%s','%s')" % (cas, language, self.company_type[file_type], url)
+                    if url == None or url == '':
+                        raise Exception('5', u'没有URL')
+                    sql = "insert into search_msdsv2 (cas,language,check_key,link_name,link) values ('%s','%s','%s','%s','%s')" % (cas, language, d['_key'], self.company_type[file_type], url)
                     # logging.info(sql)
                     self.db_molbase.execute(sql)
             except Exception, e:
@@ -123,12 +126,11 @@ class ExtractData(object):
                 sql = sql % (d['id'], d['id'])
                 self.db_spider_data.execute(sql)
         return 1
-            
 
 if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="/tmp/extract_data.log", help="NSQ topic")
+    define("logfile", default="/tmp/msds_extract.log", help="NSQ topic")
     define("func_name", default="spider_apple")
     options.parse_command_line()
     logfile = options.logfile
