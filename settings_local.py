@@ -19,3 +19,4 @@ MYSQL_SPIDER_DATA = {"host": "127.0.0.1",
                }
 NMR_FILE_PATH = "/home/kulen/NmrMsdsETL/"
 MSDS_FILE_PATH = "/home/kulen/"
+MATCH_MOL = "/home/kulen/checkmol04/matchmol"

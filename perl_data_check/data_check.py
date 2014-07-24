@@ -12,11 +12,15 @@ class DataCheck(object):
         self.db_molbase = ConUtil.connect_mysql(settings.MYSQL_MOLBASE)
     
     def view_data(self):
-        struc_sql = 'select * from search_molstruc'
+        struc_sql = 'select * from search_molstruc limit 100'
         sdata = self.db_molbase.query(struc_sql)
         for sd in sdata:
             print sd['mol_id']
             print sd['struc']
+    
+    
+    
+    
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
