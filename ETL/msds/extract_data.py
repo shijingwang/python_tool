@@ -50,7 +50,7 @@ class ExtractData(object):
             mv = '0'
         else:
             mv = mds[0]['value']
-        sql = 'select * from file_download where id>%s and status=1 and task_type=74 order by id asc limit %s'
+        sql = 'select * from file_download where id>%s and status=1 order by id asc limit %s'
         sql = sql % (mv, size)
         logging.info(u"sql语句为:%s", sql)
         # download data

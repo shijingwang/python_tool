@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from tornado.options import define, options
 import logging
+import traceback
 import os
 import Image, ImageDraw, ImageFont
 import math
@@ -16,20 +17,26 @@ class Extract(object):
         
     # stype->source type
     def get_data(self, stype, day):
+        sql = "insert into search_nmr (type,cas,path,width,height) values (%s,'%s','%s',%s,%s) on duplicate key update path='%s',width=%s,height=%s"
+        counter = 0
         for f in self.file_list:
-            im = Image.open(f)
-            fp = f[f.find('/' + day):]
-            width, height = im.size
-            if stype == 'nmrdb':
-                ftype = 3
-                cas = fp[fp.rfind('/') + 1:fp.rfind('.')]
-            else:
-                ftype = 1 if '1h' in fp else 2
-                cas = fp[fp.rfind('/') + 1:fp.rfind('-')]
-            sql = "insert into search_nmr (type,cas,path,width,height) values (%s,'%s','%s',%s,%s)"
-            sql = sql % (ftype, cas, fp, width, height)
-            self.molbase_db.insert(sql)
-    
+            counter += 1
+            try:
+                im = Image.open(f)
+                fp = f[f.find('/' + day):]
+                width, height = im.size
+                if stype == 'nmrdb':
+                    ftype = 3
+                    cas = fp[fp.rfind('/') + 1:fp.rfind('.')]
+                else:
+                    ftype = 1 if '1h' in fp else 2
+                    cas = fp[fp.rfind('/') + 1:fp.rfind('-')]
+                logging.info(u'处理cas:%s', cas)
+                isql = sql % (ftype, cas, fp, width, height, fp, width, height)
+                self.molbase_db.insert(isql)
+            except Exception, e:
+                logging.error(traceback.format_exc())
+        
     def mark_all_image(self):
         for f in self.file_list:
             target = f.replace(".png", ".mark.png")
@@ -49,7 +56,7 @@ class Extract(object):
     # TODO 将来依据图片的大小，可以选择相应的水印图片
     def image_mark(self, source, target):
         check_dir = target[:target.rfind('/')]
-        #print check_dir
+        # print check_dir
         if not os.path.exists(check_dir):
             os.makedirs(check_dir)
         fileName = source
@@ -62,8 +69,8 @@ class Extract(object):
             logging.info(u'图片:%s 过小，不打水印', source)
             return
         markWidth, markHeight = mark.size
-        logging.info("图片大小:%s",im.size)
-        #print mark.size
+        logging.info("图片大小:%s", im.size)
+        # print mark.size
         if im.mode != 'RGBA':  
             im = im.convert('RGBA')
         if mark.mode != 'RGBA':  
@@ -88,11 +95,11 @@ class Extract(object):
             i = 0;
             while i < ynum:
                 j = 0
-                #print '-----------'
+                # print '-----------'
                 while j < xnum:
                     y = i * yunit + (yunit / 2 - markHeight / 2)
                     x = j * xunit + (xunit / 2 - markWidth / 2)
-                    #print "X:%s Y:%s" % (x, y)
+                    # print "X:%s Y:%s" % (x, y)
                     layer.paste(mark, (x, y))
                     j += 1
                 i += 1
@@ -135,13 +142,16 @@ class Extract(object):
             self.get_data('nmrchem', day)
     
     def mark_nmrchem_data(self):
-        days = ["2014-07-17", "2014-07-18", "2014-07-19", "2014-07-20", "2014-07-21"]
+        days = ["2014-07-19", "2014-07-20", "2014-07-21"]
         for day in days:
             self.file_list = []
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_S + day)
             for f in self.file_list:
                 target = settings.NMR_CHEM_FILE_PATH_T + f[f.find(settings.NMR_CHEM_FILE_PATH_S) + len(settings.NMR_CHEM_FILE_PATH_S):]
-                self.image_mark(f, target)
+                try:
+                    self.image_mark(f, target)
+                except Exception, e:
+                    logging.error(traceback.format_exc())
 
 if __name__ == '__main__':
 
@@ -159,7 +169,8 @@ if __name__ == '__main__':
     # extract.image_mark('/home/kulen/NmrMsdsETL/3.png', '/home/kulen/NmrMsdsETL/3m.png')
     # extract.list_file_dir(1, '/home/kulen/NmrMsdsETL/nmrdb_file_p/2014-07-07')
     # extract.get_data('nmrdb', '2014-07-07')
-    extract.mark_nmrchem_data()
+    # extract.extract_nmrdb_data()
+    extract.extract_nmrchem_data()
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     

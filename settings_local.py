@@ -14,5 +14,5 @@ MYSQL_SPIDER_DATA = {"host": "127.0.0.1",
 NMR_CHEM_FILE_PATH_S = "/home/kulen/NmrMsdsETL/nmrimg_origin/"
 NMR_DB_FILE_PATH_S = "/home/kulen/NmrMsdsETL/nmrdb_origin/"
 NMR_CHEM_FILE_PATH_T = "/home/kulen/NmrMsdsETL/nmrimg/"
-NMR_DB_FILE_PATH_T = "/home/kulen/NmrMsdsETL/nmrdb/"
+NMR_DB_FILE_PATH_T = "/home/kulen/NmrMsdsETL/nmrdb_b/"
 MSDS_FILE_PATH = "/home/kulen/"
