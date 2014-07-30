@@ -42,7 +42,8 @@ class Extract(object):
             target = f.replace(".png", ".mark.png")
             try:
                 self.image_mark(f, target)
-                os.rename(target, f)  
+                nf = f.replace(".png", ".jpg") 
+                os.rename(target, nf)  
             except Exception:
                 pass
             
@@ -103,7 +104,13 @@ class Extract(object):
                     layer.paste(mark, (x, y))
                     j += 1
                 i += 1
-        Image.composite(layer, im, layer).save(target, quality=90)
+        
+        if imWidth > 1200:
+            nHeight = (imHeight * 1000) / imWidth
+            layer = layer.resize((1000, nHeight), Image.CUBIC)
+            im = im.resize((1000, nHeight), Image.CUBIC)
+        im.save(target, quality=50)
+        Image.composite(layer, im, layer).save(target, 'JPEG', quality=70)
         logging.info(u'图片完成打水印:%s', fileName)
     
     def extract_pdf_data(self):
@@ -167,10 +174,13 @@ if __name__ == '__main__':
     # extract.mark_all_image()
     # extract.image_mark('/home/kulen/NmrMsdsETL/1.png', '/home/kulen/NmrMsdsETL/1m.png')
     # extract.image_mark('/home/kulen/NmrMsdsETL/3.png', '/home/kulen/NmrMsdsETL/3m.png')
+    # extract.image_mark('/home/kulen/NmrMsdsETL/4.png', '/home/kulen/NmrMsdsETL/4m.png')
+    # extract.image_mark('/home/kulen/NmrMsdsETL/5.png', '/home/kulen/NmrMsdsETL/5m.png')
+    # extract.image_mark('/home/kulen/NmrMsdsETL/6.png', '/home/kulen/NmrMsdsETL/6m.png')
     # extract.list_file_dir(1, '/home/kulen/NmrMsdsETL/nmrdb_file_p/2014-07-07')
     # extract.get_data('nmrdb', '2014-07-07')
     # extract.extract_nmrdb_data()
-    extract.extract_nmrchem_data()
+    # extract.extract_nmrchem_data()
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     
