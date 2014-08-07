@@ -104,7 +104,7 @@ class NmrControl(object):
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
 
-    define("logfile", default="F:/Log/nmr_sf.log", help="NSQ topic")
+    define("logfile", default="D:/Log/nmr_sf.log", help="NSQ topic")
     options.parse_command_line()
     logfile = options.logfile
     logging.info(u'写入的日志文件为:%s', logfile)

@@ -41,6 +41,7 @@ class Nmr(object):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         if self.Mhandle == 0:
             self.startup_app() 
+        self.initial_data()
         close_alert = self.__getattribute__('close_alert')
         cat = threading.Thread(target=close_alert)
         cat.start()
@@ -176,6 +177,9 @@ class Nmr(object):
             return
         win32api.ShellExecute(0, 'open', u'"C:\\Program Files (x86)\\CambridgeSoft\\ChemOffice2010\\ChemDraw\\ChemDraw.exe"', '','',1)
         time.sleep(10)
+        self.initial_data()
+    
+    def initial_data(self):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
         logging.info("StartupEditHandle:%x", Image_handle)
@@ -187,7 +191,7 @@ class Nmr(object):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="F:/log/nmr.log", help="NSQ topic")
+    define("logfile", default="D:/log/nmr.log", help="NSQ topic")
     define("func_name", default="spider_apple")
     options.parse_command_line()
     logfile = options.logfile

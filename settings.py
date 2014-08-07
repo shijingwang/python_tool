@@ -7,6 +7,8 @@ MYSQL_MOLBASE = {"host": "127.0.0.1",
                }
 APP_PATH = 'C:\\Users\\Administrator\\Desktop\\nmr_origin\\'
 SAVE_PATH = 'F:/file/'
+MOL_FILE_PATH = "D:/molfile/"
+NMR_PIC_PATH = "D:/nmrpic/"
 try:
     from settings_local import *
 except ImportError:

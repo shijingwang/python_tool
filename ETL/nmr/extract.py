@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-from tornado.options import define, options
 import logging
-import traceback
-import os
-import Image, ImageDraw, ImageFont
 import math
+import os
+import traceback
+
+from PIL import Image
+from tornado.options import define, options
 
 from common.con_util import ConUtil
 import settings
+
 
 class Extract(object):
     
@@ -36,16 +38,6 @@ class Extract(object):
                 self.molbase_db.insert(isql)
             except Exception, e:
                 logging.error(traceback.format_exc())
-        
-    def mark_all_image(self):
-        for f in self.file_list:
-            target = f.replace(".png", ".mark.png")
-            try:
-                self.image_mark(f, target)
-                nf = f.replace(".png", ".jpg") 
-                os.rename(target, nf)  
-            except Exception:
-                pass
             
     def delete_file(self, fp):
         try:
@@ -61,7 +53,7 @@ class Extract(object):
         if not os.path.exists(check_dir):
             os.makedirs(check_dir)
         fileName = source
-        logoName = "/home/kulen/Documents/mark_logov3/logov3_60.png"
+        logoName = "F:/logo/mark_logov3/logov3_60.png"
         logging.info(u'图片打水印:%s', fileName)
         im = Image.open(fileName)
         mark = Image.open(logoName)
@@ -104,13 +96,11 @@ class Extract(object):
                     layer.paste(mark, (x, y))
                     j += 1
                 i += 1
-        
         if imWidth > 1200:
             nHeight = (imHeight * 1000) / imWidth
-            layer = layer.resize((1000, nHeight), Image.CUBIC)
-            im = im.resize((1000, nHeight), Image.CUBIC)
-        im.save(target, quality=50)
-        Image.composite(layer, im, layer).save(target, 'JPEG', quality=70)
+            layer = layer.resize((1000, nHeight))
+            im = im.resize((1000, nHeight))
+        Image.composite(layer, im, layer).save(target, quality=90)
         logging.info(u'图片完成打水印:%s', fileName)
     
     def extract_pdf_data(self):
@@ -143,6 +133,7 @@ class Extract(object):
     
     def extract_nmrchem_data(self):
         days = ["2014-07-17", "2014-07-18", "2014-07-19", "2014-07-20", "2014-07-21"]
+        days = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
         for day in days:
             self.file_list = []
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_T + day)
@@ -150,6 +141,7 @@ class Extract(object):
     
     def mark_nmrchem_data(self):
         days = ["2014-07-19", "2014-07-20", "2014-07-21"]
+        days = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
         for day in days:
             self.file_list = []
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_S + day)
@@ -163,7 +155,7 @@ class Extract(object):
 if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="/home/kulen/log/run.log", help="NSQ topic")
+    define("logfile", default="F:/log/run.log", help="NSQ topic")
     define("func_name", default="spider_apple")
     options.parse_command_line()
     logfile = options.logfile
@@ -171,16 +163,13 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     extract = Extract()
-    # extract.mark_all_image()
     # extract.image_mark('/home/kulen/NmrMsdsETL/1.png', '/home/kulen/NmrMsdsETL/1m.png')
     # extract.image_mark('/home/kulen/NmrMsdsETL/3.png', '/home/kulen/NmrMsdsETL/3m.png')
     # extract.image_mark('/home/kulen/NmrMsdsETL/4.png', '/home/kulen/NmrMsdsETL/4m.png')
-    # extract.image_mark('/home/kulen/NmrMsdsETL/5.png', '/home/kulen/NmrMsdsETL/5m.png')
-    # extract.image_mark('/home/kulen/NmrMsdsETL/6.png', '/home/kulen/NmrMsdsETL/6m.png')
-    # extract.list_file_dir(1, '/home/kulen/NmrMsdsETL/nmrdb_file_p/2014-07-07')
-    # extract.get_data('nmrdb', '2014-07-07')
-    # extract.extract_nmrdb_data()
-    # extract.extract_nmrchem_data()
+    # for i in range(1, 5):
+    #    extract.image_mark('F:/ImageCheck/%s.png' % i, 'F:/ImageCheck/%sm.png' % i)
+    # extract.mark_nmrchem_data()
+    extract.extract_nmrchem_data()
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     
