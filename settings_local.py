@@ -21,5 +21,9 @@ NMR_CHEM_FILE_PATH_S = "F:/nmrpic/"
 NMR_DB_FILE_PATH_S = "/home/kulen/NmrMsdsETL/nmrdb_origin/"
 NMR_CHEM_FILE_PATH_T = "F:/nmrpic_mark/"
 NMR_DB_FILE_PATH_T = "/home/kulen/NmrMsdsETL/nmrdb_b/"
+<<<<<<< HEAD
 MSDS_FILE_PATH = "/home/kulen/file/"
+=======
+MSDS_FILE_PATH = "/home/kulen/"
+>>>>>>> branch 'master' of https://github.com/shijingwang/python_tool.git
 MATCH_MOL_CMD = "/home/kulen/checkmol04/matchmol"
