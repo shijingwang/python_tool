@@ -51,9 +51,9 @@ class MolCheck(object):
                     break
                 for ed in eds:
                     try:
-                        if ed['diff_type'] == 1:
-                            continue
                         logging.info(u'处理编号:%s cas号:%s 的数据!', ed['id'], ed['cas'])
+                        if ed['diff_type'] == 1:
+                            raise Exception(u"不匹配的类型", 501)
                         # check pubchem  smile inchi 生成的mol文件是否匹配
                         mol_1 = "/tmp/mol_check/%s-i.mol" % ed['cas']  # -i inchi
                         mol_2 = "/tmp/mol_check/%s-c.mol" % ed['cas']  # -c canonical smile
@@ -81,7 +81,7 @@ class MolCheck(object):
                         else:
                             usqls.append((ed['cas'], 1, ed['smile_match'], ed['source_smile'], ed['target_smile'], ed['inchi_match'], ed['source_inchi'], ed['target_inchi']))
                             logging.info(u"CAS:%s pubchem数据源生成的mol文件不匹配", ed['cas'])
-                            continue
+                            raise Exception(u"Pubchem Mol文件不匹配", 502)
                         # pubchem 和 moldata　生成的mol进行匹配，如果匹配成功，则不需要进行更新，否则对mol的数据进行更新
                         c = "echo \"%s\"|babel -ican -omol --gen2d>%s" % (ed['target_smile'], mol_3)
                         logging.info(u'执行指令:%s', c)
