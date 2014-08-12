@@ -24,7 +24,7 @@ class NmrControl(object):
     
     def __init__(self):
         self.db_molbase = ConUtil.connect_mysql(settings.MYSQL_MOLBASE)
-        self.nmr = Nmr()
+        self.chemacx_extract = Nmr()
     
     def load_data(self):
         counter = 0;
@@ -73,17 +73,18 @@ class NmrControl(object):
             pic_13c = str(pic_path + cas_no + '-13c.png')
             self.delete_file(pic_1h)
             self.delete_file(pic_13c)
-            self.nmr.open_mol(mol_path)
-            self.nmr.generate_1h_image(pic_1h)
+            self.nmr.opchemacx_extractmol(mol_path)
+            self.nmr.gechemacx_extractate_1h_image(pic_1h)
             time.sleep(1)
-            self.nmr.generate_13c_image(pic_13c)
+            self.nmr.gechemacx_extractate_13c_image(pic_13c)
             time.sleep(1)
-            self.nmr.close_mol()
+            self.nmr.clchemacx_extract_mol()
             time.sleep(1)
             usql = 'update search_moldata set nmr_sf_status=1 where mol_id=%s' % mol_id
             self.db_molbase.update(usql)
         except Exception, e:
-            self.nmr.find_stop()
+            self.nmr.fichemacx_extractstop()
+            self.nmr.stchemacx_extractup_app()
             usql = 'update search_moldata set nmr_sf_status=2 where mol_id=%s' % mol_id
             self.db_molbase.update(usql)
             logging.error(u'生成mol_id:%s 核磁数据出错', mol_id, e);
@@ -103,7 +104,7 @@ class NmrControl(object):
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
 
-    define("logfile", default="F:/Log/nmr_sf.log", help="NSQ topic")
+    define("logfile", default="D:/Log/nmr_sf.log", help="NSQ topic")
     options.parse_command_line()
     logfile = options.logfile
     logging.info(u'写入的日志文件为:%s', logfile)

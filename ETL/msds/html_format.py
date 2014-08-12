@@ -8,6 +8,8 @@ class HtmlFormat(object):
     def cn_format_to_file(self):
         fp = "/home/kulen/Documents/设计样式/96.html"
         fpw = "/home/kulen/Documents/设计样式/96_w2.html"
+        fp = "/home/kulen/Documents/设计样式/1.html"
+        fpw = "/home/kulen/Documents/设计样式/1_w2.html"
         fp_writer = open(fpw, 'w')
         start = '''<html>
 <head>
@@ -32,8 +34,20 @@ class HtmlFormat(object):
             html_content += line
         fp_reader.close()
         # print html_content
-        
+        check_title_list = [u'2.对环境的影响:', u'3.现场应急监测方法:', u'4.实验室监测方法:', u'5.环境标准:', u'6.应急处理处置方法:']
         soup = BeautifulSoup(html_content);
+        '''
+        divs = soup.find_all("div")
+        for div in divs:
+            div.unwrap()
+        ps = soup.find_all("p")
+        for p in ps:
+            p.unwrap()
+        '''
+        fonts = soup.find_all("font")
+        for font in fonts:
+            font.unwrap()
+        soup = BeautifulSoup(str(soup))
         trs = soup.find_all("tr")
         table = soup.find('table')
         table['class'] = '_table_all'
@@ -59,9 +73,9 @@ class HtmlFormat(object):
                         # child.extract()
                         # previous = ''
                         pass
-                    #print check_value
-                    #print '------------------'
-                    if check_value in [u'2.对环境的影响:', u'3.现场应急监测方法:', u'4.实验室监测方法:', u'5.环境标准:', u'6.应急处理处置方法:']:
+                    # print check_value
+                    # print '------------------'
+                    if check_value in check_title_list:
                         counter += 1
                         child = child.wrap(soup.new_tag('b'))
                         child ['class'] = "_b_title_" + str(counter)
@@ -70,13 +84,69 @@ class HtmlFormat(object):
                             hr_tag['class'] = '_hr_split_' + str(counter)
                             child.insert_before(hr_tag)
                     previous = check_value
-                #print type(td)
+                # print type(td)
                 del td['colspan']
                 td.name = 'div'
                 td['class'] = '_div_content'
                 # print td.string.wrap(soup.new_tag('div'))
                 table.insert_after(td)
         self.delete_all_link(soup) 
+        v = str(soup)
+        soup = BeautifulSoup(v);
+        divs = soup.find_all("div")
+        for div in divs:
+            check_value = unicode(div.get_text().replace('\n', '').strip())
+            if check_value in check_title_list:
+                div.name = 'b'
+                child = div
+                child ['class'] = "_b_title_" + str(counter)
+                hr_tag = soup.new_tag("hr")
+                hr_tag['class'] = '_hr_split_' + str(counter)
+                child.insert_before(hr_tag)
+        ps = soup.find_all("p")
+        for p in ps:
+            check_value = unicode(p.get_text().replace('\n', '').strip())
+            p.string = check_value
+            if check_value in check_title_list:
+                p.name = 'b'
+                child = p
+                child ['class'] = "_b_title_" + str(counter)
+                hr_tag = soup.new_tag("hr")
+                hr_tag['class'] = '_hr_split_' + str(counter)
+                child.insert_before(hr_tag)
+        v = str(soup)
+        soup = BeautifulSoup(v);
+        divs = soup.find_all("div")
+        for div in divs:
+            if 'class' in div:
+                continue
+            br_tag = soup.new_tag("br")
+            div.insert_before(br_tag)
+            div.unwrap()
+        v = str(soup)
+        rv = '''
+<br/>
+      
+    '''
+        v = v.replace(rv, '<br/>')
+        rv = '''<br/>
+  '''
+        v = v.replace(rv, '<br/>')
+        v = v.replace('<br/>  ', '<br/>')
+        rv = '''<br/>
+<br/>'''
+        v = v.replace(rv, '<br/>')
+        soup = BeautifulSoup(v);
+        bs = soup.find_all("b")
+        counter = 0
+        for b in bs:
+            counter += 1
+            b['class'] = "_b_title_" + str(counter)
+        hrs = soup.find_all("hr")
+        counter = 0
+        for hr in hrs:
+            counter += 1
+            hr['class'] = "_hr_split_" + str(counter)
         v = str(soup)
         print 'Finish'
         return v
@@ -85,7 +155,7 @@ class HtmlFormat(object):
         fp = "/home/kulen/Documents/设计样式/2.html"
         fpw = "/home/kulen/Documents/设计样式/2_w2.html"
         fp_writer = open(fpw, 'w')
-        fp_writer.write(self.cn_format(fp))
+        fp_writer.write(self.en_format(fp))
         fp_writer.close()
     
     def en_format(self, source):
@@ -190,6 +260,6 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     cs = HtmlFormat()
-    #cs.en_format_to_file()
-    cs.cn_format_to_file()
+    cs.en_format_to_file()
+    #cs.cn_format_to_file()
     

@@ -35,16 +35,13 @@ def find_subHandle(pHandle, winClassList):
         pHandle = find_idxSubHandle(pHandle, winClassList[0][0], winClassList[0][1])
         return find_subHandle(pHandle, winClassList[1:])
 
-class Nmr(object):
+class ChemacxExtract(object):
     
     def __init__(self):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         if self.Mhandle == 0:
             self.startup_app() 
         self.initial_data()
-        close_alert = self.__getattribute__('close_alert')
-        cat = threading.Thread(target=close_alert)
-        cat.start()
 
     
     def file_menu_command(self, command):
@@ -54,8 +51,8 @@ class Nmr(object):
         返回确定按钮的句柄 confBTN_handle
         """
         command_dict = { 
-            "open": [1, u"打开"],
-            "save_to_image": [8, u"另存为"],
+            "new": [0, u"新建文档"],
+            "save_to_mol": [8, u"另存为"],
         }
         cmd_ID = win32gui.GetMenuItemID(self.file_menu, command_dict[command][0])
         win32gui.PostMessage(self.Mhandle, win32con.WM_COMMAND, cmd_ID, 0)
@@ -63,80 +60,68 @@ class Nmr(object):
             if win32gui.FindWindow(None, command_dict[command][1]): 
                 break  # 如果找到了打开或者另存为的对话框，就跳出循环
             else:
-                win32api.Sleep(200)  # 利用这个函数等待200ms，就不需要再额外导入time模块了
+                time.sleep(1)
         dig_handle = win32gui.FindWindow(None, command_dict[command][1])
         confBTN_handle = win32gui.FindWindowEx(dig_handle, 0, "Button", None)
         logging.info(u"dialogue_handle:%x button_handle:%x", dig_handle, confBTN_handle)
         return dig_handle, confBTN_handle
 
-    def structure_menu_command(self, command):
+    def online_menu_command(self, command):
         command_dict = { 
-            "1H": [21, u"第一种核磁图"],
-            "13C": [22, u"第二种核磁图"],
+            "EntryAcxNumber": [1, u"Entry AcxNumber"],
         }
-        cmd_ID = win32gui.GetMenuItemID(self.structure_menu, command_dict[command][0])
+        cmd_ID = win32gui.GetMenuItemID(self.online_menu, command_dict[command][0])
         logging.info("NMR Handle:%x", cmd_ID)
         win32gui.PostMessage(self.Mhandle, win32con.WM_COMMAND, cmd_ID, 0)
-    
-    def open_mol(self, molfile):
-        """打开Mol文件"""
-        Mhandle, confirmBTN_handle = self.file_menu_command('open')
-        handle = find_subHandle(Mhandle, [("ComboBoxEx32", 0), ("ComboBox", 0), ("Edit", 0)])
-        logging.info(u"打开按钮Handle:%x", handle)
-        if win32api.SendMessage(handle, win32con.WM_SETTEXT, 0, os.path.abspath(molfile)) != 1:
-            raise Exception("File opening path set failed")
-        win32api.SendMessage(Mhandle, win32con.WM_COMMAND, 1, confirmBTN_handle)  
-        time.sleep(0.5)
-        MOL_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
         
-        win32gui.SetForegroundWindow(MOL_handle)  
-        win32api.keybd_event(17, 0, 0, 0)  # Alt
-        win32api.keybd_event(65, 0, 0, 0)  # F
-        win32api.keybd_event(17, 0, win32con.KEYEVENTF_KEYUP, 0) 
-        win32api.keybd_event(65, 0, win32con.KEYEVENTF_KEYUP, 0)
-        time.sleep(0.5)
+    def entry_acx_number(self, acx_number):
+        self.online_menu_command("EntryAcxNumber")
+        time.sleep(0.1)
+        entry_window = win32gui.FindWindow("#32770",u"Find Structure from ACX Number")
+        edit_handle=find_subHandle(entry_window, [("Edit", 0)])
+        confirm_handle=find_subHandle(entry_window, [("Button", 0)])
+        if win32api.SendMessage(edit_handle, win32con.WM_SETTEXT, 0, acx_number) != 1:
+            raise Exception("Set Entry Number failed")
+        time.sleep(0.1)
+        win32api.SendMessage(entry_window, win32con.WM_COMMAND, 1, confirm_handle)
+        time.sleep(0.1)
     
+    def new_blank_document(self):
+        self.file_menu_command('new')
+        time.sleep(0.1)
     
-    def generate_1h_image(self, filepath):
-        self.structure_menu_command("1H")
-        # 等待软件生成图片
-        time.sleep(1)
-        self.save_to_image(filepath)
-        pass
-    
-    def generate_13c_image(self, filepath):
-        self.structure_menu_command("13C")
-        time.sleep(1)
-        self.save_to_image(filepath)
-        pass
-    
-    def close_mol(self):
+    def close_document(self):
         Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
+        if Image_handle == 0:
+            return
         win32gui.SendMessage(Image_handle, win32con.WM_CLOSE, 0, 0)
+        time.sleep(0.1)
     
-    
-    def save_to_image(self, filePath):  
-        Mhandle, confirmBTN_handle = self.file_menu_command('save_to_image')  
+    def save_to_mol(self, filePath):  
+        Mhandle, confirmBTN_handle = self.file_menu_command('save_to_mol')  
         EDIT_handle = find_subHandle(Mhandle, [("ComboBoxEx32", 0), ("ComboBox", 0), ("Edit", 0)])  # 定位保存地址句柄
         TYPE_handle = find_subHandle(Mhandle, [("ComboBox", 1)])
-          
-        win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 16, 0)
-        time.sleep(0.2)
-        if win32api.SendMessage(EDIT_handle, win32con.WM_SETTEXT, 0, os.path.abspath(filePath)) != 1:
-            raise Exception("Set file opening path failed")
-        time.sleep(0.2)
+        
+        counter = 0
+        win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 12, 0)
+        while True:
+            counter += 1
+            time.sleep(0.1)
+            if win32api.SendMessage(EDIT_handle, win32con.WM_SETTEXT, 0, os.path.abspath(filePath)) != 1:
+                continue
+            else:
+                break
+            if counter>=200:
+                raise Exception("Save mol file error")
+        time.sleep(0.1)
         win32api.SendMessage(Mhandle, win32con.WM_COMMAND, 1, confirmBTN_handle)
-        time.sleep(0.2)
-        # 下面的方法会产生阻塞，所以需要开启新线程关闭窗口
-        Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 1)])
-        win32gui.SendMessage(Image_handle, win32con.WM_CLOSE, 0, 0)
-        return
+        time.sleep(1)
     
     def close_alert(self):
         logging.info(u"启动关闭窗口进程")
         while True:
             Alert_handle = win32gui.FindWindow("#32770", u"ChemBioDraw Ultra")
-            if Alert_handle==0:
+            if Alert_handle == 0:
                 time.sleep(0.5)    
                 continue
             logging.info(u"执行关闭窗口操作")
@@ -175,19 +160,18 @@ class Nmr(object):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         if self.Mhandle != 0:
             return
-        win32api.ShellExecute(0, 'open', u'"C:\\Program Files (x86)\\CambridgeSoft\\ChemOffice2010\\ChemDraw\\ChemDraw.exe"', '','',1)
-        time.sleep(10)
+        win32api.ShellExecute(0, 'open', u'"C:\\Program Files (x86)\\CambridgeSoft\\ChemOffice2010\\ChemDraw\\ChemDraw.exe"', '', '', 1)
+        time.sleep(6)
         self.initial_data()
     
     def initial_data(self):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
-        Image_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
-        logging.info("StartupEditHandle:%x", Image_handle)
-        win32gui.SendMessage(Image_handle, win32con.WM_CLOSE, 0, 0)
         self.totalmenu = win32gui.GetMenu(self.Mhandle)
         self.file_menu = win32gui.GetSubMenu(self.totalmenu, 0)
-        self.structure_menu = win32gui.GetSubMenu(self.totalmenu, 4)
-        logging.info(u"Handle:%x menu:%x struc:%x", self.Mhandle, self.file_menu, self.structure_menu)
+        self.online_menu = win32gui.GetSubMenu(self.totalmenu, 8)
+        self.close_document()
+        self.new_blank_document()
+        logging.info(u"Handle:%x menu:%x struc:%x", self.Mhandle, self.file_menu, self.online_menu)
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
@@ -202,16 +186,9 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)  # 为handler添加formatter
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
-    nmr = Nmr()
-    #nmr.find_stop()
-    #nmr.startup_app()
-    """
-    nmr.open_mol("C:\\Users\\Administrator\\Desktop\\molfile\\23672-07-3.mol")
-    nmr.generate_1h_image("C:\\Users\\Administrator\\Desktop\\cp_1h.png")
-    time.sleep(1)
-    nmr.generate_13c_image("C:\\Users\\Administrator\\Desktop\\cp_13c.png")
-    time.sleep(1)
-    nmr.close_mol()
-    time.sleep(1)
-    """
+    chemacxExtract = ChemacxExtract()
+    #chemacxExtract.online_menu_command("EntryAcxNumber")
+    chemacxExtract.entry_acx_number('X1029414-7')
+    time.sleep(6)
+    chemacxExtract.save_to_mol('C://Users//Administrator//Desktop//1.mol')
     logging.info(u'程序运行完成')
