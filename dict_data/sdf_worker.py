@@ -18,6 +18,11 @@ class SdfWorker(object):
             os.makedirs(dict_conf.bitmapdir)
         self.tmp_mol1 = '/tmp/mol1.mol'
         self.tmp_mol2 = '/tmp/mol2.mol'
+        sql = 'select fpdef from moldb_fpdef'
+        rs = self.db_dict.query(sql)
+        for r in rs:
+            self.fpdef = r['fpdef']
+        # print self.fpdef
         pass
 
     def delete_file(self, fp):
@@ -34,6 +39,8 @@ class SdfWorker(object):
         name = ''
         value = ''
         attr_list = []
+        mol_id = self.get_start_molid()
+        mol_id += 20
         while 1:
             line = fp_reader.readline()
             if not line:
@@ -59,15 +66,133 @@ class SdfWorker(object):
                 # print attr_list
                 # print mol
                 # 已经完成对一个化合物数据的提取
-                self.write_dic(attr_list, mol)
+                mol_id += 1
+                self.write_dic(mol_id, attr_list, mol)
                 break
             
         fp_reader.close()
         # print html_content
         pass
     
-    def write_dic(self, attrs, mol):
-        self.check_match(mol)
+    def get_start_molid(self):
+        sql = 'select max(mol_id) as mol_id from molbase.search_moldata'
+        rs = self.db_dict.query(sql)
+        for r in rs:
+            mol_id = r['mol_id']
+        if not mol_id:
+            mol_id = 0
+        mol_id += 1
+        return mol_id
+    
+    def write_dic(self, mol_id, attrs, mol):
+        result = self.check_match(mol)
+        # 字典中有相应的数据
+        if result > 0:
+            print result
+        v_d = {}
+        for key in dict_conf.SDF_KEY:
+            for attr in attrs:
+                if attr['name'] in dict_conf.SDF_KEY[key]:
+                    v_d[key] = attr['value']
+        print v_d;
+        params = [mol_id]
+        params.append(v_d['mol_name'])
+        params.append(v_d['cas_no'])
+        c = "obprop %s 2>/dev/null | awk -F\"\\t\" '{print $1}' | cut -c 17- | head -16 | tail -15"
+        c = c % (self.tmp_mol1)
+        result = os.popen(c).read()
+        results = result.split('\n');
+        for i in range(0, 15):
+            v = results[i].strip()
+            if not v:
+                continue
+            params.append(v)
+            # print "%s : %s" % ((i + 1), v)
+        sql = '''INSERT INTO search_moldata (mol_id, mol_name, en_synonyms, zh_synonyms, name_cn, cas_no, 
+                                                formula,mol_weight,exact_mass,smiles,inchi,
+                                                num_atoms,num_bonds,num_residues,sequence,
+                                                num_rings,logp,psa,mr,goods_count) VALUES (
+                                                '%s', '%s', '','','','%s',
+                                                '%s','%s','%s','%s','%s',
+                                                '%s','%s','%s','%s',
+                                                '%s','%s','%s','%s',0
+                                                )'''
+        sql = sql % tuple(params)
+        # logging.info(sql)
+        self.db_dict.insert(sql)
+        # 对mol文件进行相应的格式化
+        c = "echo \"%s\" | checkmol -m - 2>&1" % mol
+        result = os.popen(c).read()
+        # print "molformat>>>" + result
+        sql = "insert into search_molstruc values ('%s','%s',0,0)"
+        sql = sql % (mol_id, result)
+        self.db_dict.insert(sql)
+        c = "echo \"%s\" | checkmol -aXbH - 2>&1" % mol
+        result = os.popen(c).read()
+        # print result
+        results = result.split("\n")
+        molstat = results[0]
+        molfgb = results[1]
+        molhfp = results[2]
+        if ('unknown' not in molstat) and ('invalid' not in molstat):
+            sql = 'insert into search_molstat values (%s,%s)' % (mol_id, molstat)
+            logging.info(u"执行的sql:%s", sql)
+            self.db_dict.insert(sql)
+            molfgb = molfgb.replace(';', ',')
+            sql = 'insert into search_molfgb values (%s,%s)' % (mol_id, molfgb)
+            self.db_dict.insert(sql)
+            
+            molhfp = molhfp.replace(';', ',')
+            sql = 'insert into search_molcfp values (%s,%s,%s)'
+            cand = "%s$$$$%s" % (mol, self.fpdef)
+            cand = cand.replace('$', '\$')
+            c = "echo \"%s\" | %s -F - 2>&1" % (cand, dict_conf.MATCHMOL)
+            result = os.popen(c).read().replace('\n', '')
+            sql = sql % (mol_id, result, molhfp)
+            self.db_dict.insert(sql)
+        pic_path = str(mol_id)
+        while len(pic_path) < 8:
+            pic_path = '0' + pic_path
+        pic_dir = pic_path[0:4]
+        pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
+        pic_fp = dict_conf.bitmapdir + '/' + pic_dir
+        # print pic_fp
+        # print pic_dir
+        os.makedirs(pic_dir)
+        c = "echo \"%s\" | %s %s - 2>&1"
+        c = c % (mol, dict_conf.MOL2PS, dict_conf.mol2psopt)
+        molps = os.popen(c).read()
+        c = "echo \"%s\" | %s -q -sDEVICE=bbox -dNOPAUSE -dBATCH  -r300 -g500000x500000 - 2>&1"
+        c = c % (molps, dict_conf.GHOSTSCRIPT)
+        bb = os.popen(c).read()
+        bbs = bb.split('\n')
+        bblores = bbs[0].replace('%%BoundingBox:', '').lstrip()
+        bbcorner = bblores.split(' ')
+        if len(bbcorner) >= 4:
+            bbleft = int(bbcorner[0])
+            bbbottom = int(bbcorner[1])
+            bbright = int(bbcorner[2])
+            bbtop = int(bbcorner[3])
+            xtotal = (bbright + bbleft) * dict_conf.scalingfactor
+            ytotal = (bbtop + bbbottom) * dict_conf.scalingfactor
+        if xtotal > 0 and ytotal > 0:
+            molps = '%s %s scale\n%s' % (dict_conf.scalingfactor, dict_conf.scalingfactor, molps)
+        else:
+            xtotal = 99; ytotal = 55
+            molps = '''%!PS-Adobe
+                    /Helvetica findfont 14 scalefont setfont
+                    10 30 moveto
+                    (2D structure) show
+                    10 15 moveto
+                    (not available) show
+                    showpage\n''';
+        gsopt1 = " -r300 -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -dDEVICEWIDTHPOINTS=%s -dDEVICEHEIGHTPOINTS=%s -sOutputFile=%s"
+        gsopt1 = gsopt1 % (xtotal, ytotal, pic_fp)
+        c = "echo \"%s\" | %s -q -sDEVICE=pnggray -dNOPAUSE -dBATCH %s - "
+        c = c % (molps, dict_conf.GHOSTSCRIPT, gsopt1)
+        # print 'command>>' + c
+        result = os.popen(c).read()
+        # print 'pic_result>>' + result
         pass
     
     def check_match(self, mol):
@@ -87,10 +212,10 @@ class SdfWorker(object):
         sql = sql % (result1)
         # print "[%s]" % result1
         # print "[%s]" % result2  
-        logging.info(u"执行的sql:%s", sql)
+        # logging.info(u"执行的sql:%s", sql)
         rs = self.db_dict.query(sql)
         if len(rs) == 0:
-            return 1
+            return -1
 
         self.delete_file(self.tmp_mol1)
         mol1_writer = open(self.tmp_mol1, 'w')
@@ -103,7 +228,10 @@ class SdfWorker(object):
             mol2_writer.close()
             
             c = "%s -aisxgG %s %s" % (dict_conf.MATCHMOL, self.tmp_mol1, self.tmp_mol2)
-            
+            result = os.popen(c).read()
+            # 返回相应的molid
+            if ':T' in result:
+                return r['mol_id']
         pass
 
 if __name__ == '__main__':
@@ -122,4 +250,5 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     worker = SdfWorker()
     worker.import_sdf()
+    # print worker.get_start_molid()
     logging.info(u'程序运行完成')

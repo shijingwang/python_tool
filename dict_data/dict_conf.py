@@ -15,5 +15,11 @@ CHECKMOL = "/home/kulen/checkmol04/checkmol"
 MATCHMOL = "/home/kulen/checkmol04/matchmol"
 MOL2PS = "/usr/local/bin/mol2ps"
 GHOSTSCRIPT = "/usr/bin/gs"
-bitmapdir = "/home/kulen/molpic";
+bitmapdir = "/home/kulen/molpic"
+scalingfactor = 0.22
+mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
+SDF_KEY = {
+           "cas_no":['CAS'],
+           "mol_name":['product_name']
+           }
 
