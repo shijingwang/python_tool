@@ -2,6 +2,8 @@
 from tornado.options import define, options
 import logging
 import os, sys
+import csv
+import traceback
 try:
     import python_tool
 except ImportError:
@@ -32,15 +34,17 @@ class SdfWorker(object):
         except Exception:
             pass
 
-    def import_sdf(self):
+    def import_sdf(self, sdf_file):
         fp = "/home/kulen/PerlProject/python_tool/dict_data/test.sdf"
+        logging.info("导入sdf文档数据:%s", fp)
         fp_reader = open(fp)
-        mol = '\n'
+        mol = ''
         name = ''
         value = ''
         attr_list = []
         mol_id = self.get_start_molid()
         mol_id += 20
+        export_list = []
         while 1:
             line = fp_reader.readline()
             if not line:
@@ -67,10 +71,30 @@ class SdfWorker(object):
                 # print mol
                 # 已经完成对一个化合物数据的提取
                 mol_id += 1
-                self.write_dic(mol_id, attr_list, mol)
-                break
-            
+                try:
+                    query_mol_id = self.write_dic(mol_id, attr_list, mol)
+                    sql = 'select * from search_moldata where mol_id=%s'
+                    sql = sql % query_mol_id
+                    rs = self.db_dict.query(sql)
+                    for r in rs:
+                        export_list.append((r['mol_id'], r['cas_no']))
+                except Exception, e:
+                    logging.error(u"处理产品时出错:%s", attr_list)
+                    logging.error(traceback.format_exc())
+                attr_list = []
+                mol = ''
+                name = ''
+                value = ''
+                # break
         fp_reader.close()
+        file_name = fp[fp.rfind('/') + 1:fp.rfind('.')]
+        result_file_fp = dict_conf.SDF_RESULT_PATH + file_name + ".csv"
+        csvfile = file(result_file_fp, 'wb')
+        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(['mol_id', 'cas_no'])
+        writer.writerows(export_list)
+        csvfile.close()
+        
         # print html_content
         pass
     
@@ -85,16 +109,24 @@ class SdfWorker(object):
         return mol_id
     
     def write_dic(self, mol_id, attrs, mol):
-        result = self.check_match(mol)
+        
+        self.delete_file(self.tmp_mol1)
+        mol1_writer = open(self.tmp_mol1, 'w')
+        mol1_writer.write(mol)
+        mol1_writer.close()
+        check_mol_id = self.check_match(mol)
         # 字典中有相应的数据
-        if result > 0:
-            print result
+        if check_mol_id > 0:
+            logging.info(u"数据:%s 已经在数据库中存在，mol_id为:%s", attrs, check_mol_id)
+            # mol_id -= 1
+            return check_mol_id
+        
         v_d = {}
         for key in dict_conf.SDF_KEY:
             for attr in attrs:
                 if attr['name'] in dict_conf.SDF_KEY[key]:
                     v_d[key] = attr['value']
-        print v_d;
+        # print v_d;
         params = [mol_id]
         params.append(v_d['mol_name'])
         params.append(v_d['cas_no'])
@@ -108,6 +140,7 @@ class SdfWorker(object):
                 continue
             params.append(v)
             # print "%s : %s" % ((i + 1), v)
+
         sql = '''INSERT INTO search_moldata (mol_id, mol_name, en_synonyms, zh_synonyms, name_cn, cas_no, 
                                                 formula,mol_weight,exact_mass,smiles,inchi,
                                                 num_atoms,num_bonds,num_residues,sequence,
@@ -120,6 +153,8 @@ class SdfWorker(object):
         sql = sql % tuple(params)
         # logging.info(sql)
         self.db_dict.insert(sql)
+        
+        self.delete_data(mol_id)
         # 对mol文件进行相应的格式化
         c = "echo \"%s\" | checkmol -m - 2>&1" % mol
         result = os.popen(c).read()
@@ -156,9 +191,10 @@ class SdfWorker(object):
         pic_dir = pic_path[0:4]
         pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
         pic_fp = dict_conf.bitmapdir + '/' + pic_dir
+        if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
+            os.makedirs(pic_fp[0:pic_fp.rfind('/')])
         # print pic_fp
         # print pic_dir
-        os.makedirs(pic_dir)
         c = "echo \"%s\" | %s %s - 2>&1"
         c = c % (mol, dict_conf.MOL2PS, dict_conf.mol2psopt)
         molps = os.popen(c).read()
@@ -193,7 +229,17 @@ class SdfWorker(object):
         # print 'command>>' + c
         result = os.popen(c).read()
         # print 'pic_result>>' + result
-        pass
+        c = "file \"%s\" | awk '{print $5, $7}' | awk -F\",\" '{print $1}'"
+        c = c % pic_fp
+        result = os.popen(c).read()
+        pic_width = result.split(' ')[0]
+        pic_height = result.split(' ')[1]
+        status = 1
+        # print 'pic_size>>' + result
+        sql = "insert into search_pic2d (mol_id,type,status,s_pic,s_width,s_height) values ('%s',1,'%s','%s','%s','%s')"
+        sql = sql % (mol_id, status, pic_dir, pic_width, pic_height)
+        self.db_dict.insert(sql);
+        return mol_id
     
     def check_match(self, mol):
         c = "echo \"%s\" | checkmol -axH -" % mol
@@ -216,11 +262,7 @@ class SdfWorker(object):
         rs = self.db_dict.query(sql)
         if len(rs) == 0:
             return -1
-
-        self.delete_file(self.tmp_mol1)
-        mol1_writer = open(self.tmp_mol1, 'w')
-        mol1_writer.write(mol)
-        mol1_writer.close()
+        
         for r in rs:
             self.delete_file(self.tmp_mol2)
             mol2_writer = open(self.tmp_mol2, 'w')
@@ -233,14 +275,33 @@ class SdfWorker(object):
             if ':T' in result:
                 return r['mol_id']
         pass
+    
+    def delete_data(self, mol_id):
+        sql = 'delete from search_molstruc where mol_id=%s'
+        sql = sql % mol_id
+        self.db_dict.execute(sql)
+        sql = 'delete from search_pic2d where mol_id=%s'
+        sql = sql % mol_id
+        self.db_dict.execute(sql)
+        sql = 'delete from search_molstat where mol_id=%s'
+        sql = sql % mol_id
+        self.db_dict.execute(sql)
+        sql = 'delete from search_molfgb where mol_id=%s'
+        sql = sql % mol_id
+        self.db_dict.execute(sql)
+        sql = 'delete from search_molcfp where mol_id=%s'
+        sql = sql % mol_id
+        self.db_dict.execute(sql)
 
 if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/msds_extract.log", help="NSQ topic")
     define("func_name", default="spider_apple")
+    define("sdf_file", default="test.sdf")
     options.parse_command_line()
     logfile = options.logfile
+    sdf_file = options.sdf_file
     fmt = '%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s'
     handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=100 * 1024 * 1024, backupCount=10)  # 实例化handler
     handler.setLevel(logging.DEBUG)
@@ -249,6 +310,6 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     worker = SdfWorker()
-    worker.import_sdf()
+    worker.import_sdf(sdf_file)
     # print worker.get_start_molid()
     logging.info(u'程序运行完成')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 MYSQL_DICT = {"host": "127.0.0.1",
                "port": "3306",
-               "database": "molbase",
+               "database": "molbase_check",
                "user": "root",
                "password": "rainzgq"
                }
@@ -16,6 +16,7 @@ MATCHMOL = "/home/kulen/checkmol04/matchmol"
 MOL2PS = "/usr/local/bin/mol2ps"
 GHOSTSCRIPT = "/usr/bin/gs"
 bitmapdir = "/home/kulen/molpic"
+SDF_RESULT_PATH = "/tmp/"
 scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
 SDF_KEY = {
