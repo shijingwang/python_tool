@@ -13,6 +13,8 @@ MYSQL_DICT_SOURCE = {"host": "127.0.0.1",
                }
 CHECKMOL = "/home/kulen/checkmol04/checkmol"
 MATCHMOL = "/home/kulen/checkmol04/matchmol"
+CHECKMOL_V2 = "/home/kulen/checkmol04/molstat"
+MATCHMOL_V2 = "/home/kulen/checkmol04/molmatch"
 MOL2PS = "/usr/local/bin/mol2ps"
 GHOSTSCRIPT = "/usr/bin/gs"
 bitmapdir = "/home/kulen/molpic"
@@ -21,6 +23,6 @@ scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
 SDF_KEY = {
            "cas_no":['CAS'],
-           "mol_name":['product_name']
+           "name_en":['product_name']
            }
 
