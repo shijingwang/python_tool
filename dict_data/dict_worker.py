@@ -13,7 +13,7 @@ except ImportError:
 from common.con_util import ConUtil
 import dict_conf
 
-class SdfWorker(object):
+class DictWorker(object):
     
     def __init__(self):
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT)
@@ -114,7 +114,6 @@ class SdfWorker(object):
             mol_id = r['mol_id']
         if not mol_id:
             mol_id = 0
-        mol_id += 1
         return mol_id
     
     def write_dic(self, data_dict, mol):
@@ -167,7 +166,7 @@ class SdfWorker(object):
                                                     %s,%s,%s,%s,0
                                                     )'''
             logging.info(u"写入新数据,mol_id:%s!", mol_id)
-            #logging.info(sql)
+            # logging.info(sql)
             self.db_dict.insert(sql, *params)
         else:
             sql = '''update search_moldata  set formula=%s,mol_weight=%s,exact_mass=%s,smiles=%s,inchi=%s,
@@ -363,26 +362,30 @@ class SdfWorker(object):
         sql = 'select * from dic_source_data'
         rs = self.db_dict_source.query(sql)
         for r in rs:
-            # logging.info(u'处理id:%s cas_no:%s的记录', r['id'], r['cas_no'])
-            if not r['cas_no']:
-                logging.info(u'id:%s 记录无cas号', r['id'])
-                continue
-            if not self.cas_check(r['cas_no']):
-                logging.info(u'CAS号:%s 校验失败', r['cas_no'])
-                continue
-            if not r['inchi'].startswith('InChI='):
-                r['inchi'] = 'InChI=' + r['inchi']
-            c = 'echo "%s" | babel -iinchi -ocan'
-            c = c % r['inchi']
-            result = os.popen(c).read().replace('\r', '').replace('\n', '').strip()
-            if not result:
-                logging.info(u"CAS号:%s InChI:%s 格式错误", r['cas_no'], r['inchi'])
-                continue
-            data_dict = {'name_en':r['name_en'], 'name_en_alias':r['name_en_alias'], 'name_cn':r['name_cn'], 'name_cn_alias':r['name_cn_alias'], 'cas_no':r['cas_no']}
-            c = 'echo "%s" | babel -iinchi -omol --gen2d'
-            c = c % r['inchi']
-            result = os.popen(c).read()
-            self.write_dic(data_dict, result)
+            try:
+                # logging.info(u'处理id:%s cas_no:%s的记录', r['id'], r['cas_no'])
+                if not r['cas_no']:
+                    logging.info(u'id:%s 记录无cas号', r['id'])
+                    continue
+                if not self.cas_check(r['cas_no']):
+                    logging.info(u'CAS号:%s 校验失败', r['cas_no'])
+                    continue
+                if not r['inchi'].startswith('InChI='):
+                    r['inchi'] = 'InChI=' + r['inchi']
+                c = 'echo "%s" | babel -iinchi -ocan'
+                c = c % r['inchi']
+                result = os.popen(c).read().replace('\r', '').replace('\n', '').strip()
+                if not result:
+                    logging.info(u"CAS号:%s InChI:%s 格式错误", r['cas_no'], r['inchi'])
+                    continue
+                data_dict = {'name_en':r['name_en'], 'name_en_alias':r['name_en_alias'], 'name_cn':r['name_cn'], 'name_cn_alias':r['name_cn_alias'], 'cas_no':r['cas_no']}
+                c = 'echo "%s" | babel -iinchi -omol --gen2d'
+                c = c % r['inchi']
+                result = os.popen(c).read()
+                self.write_dic(data_dict, result)
+            except Exception, e:
+                logging.error(u"处理cas:%s 产品:%s", r['cas_no'], r['name_en'])
+                logging.error(traceback.format_exc())
             # break
     
     def check_data_exist(self, cas):
@@ -416,11 +419,14 @@ if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
-    define("func_name", default="spider_apple")
+    define("func_name", default="import_table_data")
     define("sdf_file", default="/home/kulen/PerlProject/python_tool/dict_data/test.sdf")
+    define("mol_id", default="-1")
     options.parse_command_line()
     logfile = options.logfile
     sdf_file = options.sdf_file
+    func_name = options.func_name
+    mol_id = int(options.mol_id)
     fmt = '%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s'
     handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=100 * 1024 * 1024, backupCount=10)  # 实例化handler
     handler.setLevel(logging.DEBUG)
@@ -428,9 +434,12 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)  # 为handler添加formatter
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
-    worker = SdfWorker()
-    worker.import_sdf(sdf_file)
-    # worker.update_stat_table()
-    # worker.import_table_data()
-    # worker.test()
+    worker = DictWorker()
+    if mol_id > 0:
+        worker.i_mol_id = mol_id
+    func_name = 'import_table_data'
+    if func_name == 'import_table_data':
+        worker.import_table_data()
+    if func_name == 'import_sdf':
+        worker.import_sdf(sdf_file)
     logging.info(u'程序运行完成')
