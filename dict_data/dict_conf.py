@@ -22,7 +22,8 @@ SDF_RESULT_PATH = "/tmp/"
 scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
 SDF_KEY = {
-           "cas_no":['CAS'],
-           "name_en":['product_name']
+           "cas_no":['CAS','CASNO.','CAS_NUMBER'],
+           "name_en":['product_name','PRODUCT_NAME','COMPOUND_NAME'],
+           "name_cn":['PRODUCT_NAME_CN']
            }
 

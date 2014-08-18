@@ -46,6 +46,9 @@ class DictWorker(object):
         value = ''
         attr_list = []
         export_list = []
+        goods_list = []
+        goods_dict = {}
+        prices = []
         counter = 0
         while 1:
             line = fp_reader.readline()
@@ -54,16 +57,21 @@ class DictWorker(object):
                 if counter >= 20:
                     break
             # print '=======' + line
-            if line.startswith('>  <'):
+            if line.startswith('>  <') or line.startswith('$$$$'):
                 if name:
                     value = value.replace('\n', '').replace('\r', '')
                     # print "Name:%s Value:%s" % (name, value)
                     attr_list.append({'name':name, 'value':value})
-                name = ''
-                value = ''
-                counter = 0
-                name = line[line.index('<') + 1:line.rindex('>')]
-                continue
+                    if name in ['spec_1', 'spec_2', 'spec_3', 'spec_4', 'spec_5']:
+                        prices.append(value)
+                    # 商品价格表数据
+                    goods_dict[name] = value
+                if line.startswith('>  <'):
+                    name = ''
+                    value = ''
+                    counter = 0
+                    name = line[line.index('<') + 1:line.rindex('>')]
+                    continue
             if name:
                 value += line
             else:
@@ -88,6 +96,8 @@ class DictWorker(object):
                     rs = self.db_dict.query(sql)
                     for r in rs:
                         export_list.append((r['mol_id'], r['cas_no']))
+                    for price in prices:
+                        goods_list.append((r['mol_id'], r['cas_no'], goods_dict.get('PURITY', ''), goods_dict.get('LEAD_TIME', ''), goods_dict.get('STOCK', ''), goods_dict.get('CAPACITY', ''), price))
                 except Exception, e:
                     logging.error(u"处理产品时出错:%s", attr_list)
                     logging.error(traceback.format_exc())
@@ -96,16 +106,23 @@ class DictWorker(object):
                 name = ''
                 value = ''
                 counter = 0
-                # break
+                goods_dict = {}
+                prices = []
+                #break
         fp_reader.close()
+        
         file_name = fp[fp.rfind('/') + 1:fp.rfind('.')]
+        self.write_csv(file_name, ['mol_id', 'cas_no'], export_list)
+        self.write_csv(file_name + '_goods', ['mol_id', 'cas_no', 'PURITY', 'LEAD_TIME', 'STOCK', 'CAPACITY', 'price'], goods_list)
+    
+    def write_csv(self, file_name, columns, data_list):
         result_file_fp = dict_conf.SDF_RESULT_PATH + file_name + ".csv"
+        self.delete_file(result_file_fp)
         csvfile = file(result_file_fp, 'wb')
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-        writer.writerow(['mol_id', 'cas_no'])
-        writer.writerows(export_list)
+        writer.writerow(columns)
+        writer.writerows(data_list)
         csvfile.close()
-        pass
     
     def get_start_molid(self):
         sql = 'select max(mol_id) as mol_id from search_moldata'
@@ -419,8 +436,8 @@ if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
-    define("func_name", default="import_table_data")
-    define("sdf_file", default="/home/kulen/PerlProject/python_tool/dict_data/test.sdf")
+    define("func_name", default="import_sdf")
+    define("sdf_file", default="/home/kulen/Documents/xili_data/xili_1.sdf")
     define("mol_id", default="-1")
     options.parse_command_line()
     logfile = options.logfile
@@ -437,7 +454,6 @@ if __name__ == '__main__':
     worker = DictWorker()
     if mol_id > 0:
         worker.i_mol_id = mol_id
-    func_name = 'import_table_data'
     if func_name == 'import_table_data':
         worker.import_table_data()
     if func_name == 'import_sdf':
