@@ -17,12 +17,12 @@ class ExtractData(object):
     
     def __init__(self):
         self.company_type = {
-                    13:'synthonix',
-                    23:'arkpharminc',
-                    43:'tcichemicals',
-                    53:'sigmaaldrich',
-                    63:'acros',
-                    74:'guidechem'         
+                    12603:'synthonix',
+                    12611:'arkpharminc',
+                    12619:'tcichemicals',
+                    12601:'sigmaaldrich',
+                    12631:'acros',
+                    12629:'guidechem'         
                     }
         self.db_spider_data = ConUtil.connect_mysql(settings.MYSQL_SPIDER_DATA)
         self.db_molbase = ConUtil.connect_mysql(settings.MYSQL_MOLBASE)
@@ -86,7 +86,7 @@ class ExtractData(object):
         for d in ddata:
             logging.info(u"处理编号:%s MSDS文档", d['id'])
             try:
-                file_type = int(d['task_type'])
+                file_type = int(d['site_id'])
                 cas = d['name3'].strip()
                 language = d['language']
                 source_key = d['source_key']
@@ -102,7 +102,7 @@ class ExtractData(object):
                     if source_key == d2['_key']:
                         url = d2['url']
                         break
-                if file_type == 74:
+                if file_type == 12629:
                     if language == 'English':
                         content = self.html_fomrat.en_format(settings.MSDS_FILE_PATH + path)
                     else:

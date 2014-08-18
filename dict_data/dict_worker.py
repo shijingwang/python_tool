@@ -437,7 +437,7 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
     define("func_name", default="import_sdf")
-    define("sdf_file", default="/home/kulen/Documents/xili_data/xili_1.sdf")
+    define("sdf_file", default="/home/kulen/Documents/xili_data/xili_2.sdf")
     define("mol_id", default="-1")
     options.parse_command_line()
     logfile = options.logfile
