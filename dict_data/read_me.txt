@@ -4,6 +4,8 @@ python dict_worker.py --func_name=import_table_data --mol_id=2391150
 sdf导入指令
 python dict_worker.py --func_name=import_sdf --mol_id=2393450  --sdf_file=/tmp/xili_data/xili_1.sdf
 
+python dict_worker.py --func_name=import_table_data --mol_id=2395750
+
 起始id
 2391105
 数据数据更新完成之后的mol_id
@@ -23,6 +25,11 @@ python dict_worker.py --func_name=import_sdf --mol_id=2393450  --sdf_file=/tmp/x
 
 数据修正时, 当前数据最大的mol_id
 2395719
+
+2395721
+delete from search_moldata where mol_id>2395721;
+新增字典数据（pubchem,起始id)：
+2395750
 
 
 

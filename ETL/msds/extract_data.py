@@ -120,7 +120,6 @@ class ExtractData(object):
             except Exception, e:
                 logging.error(u'提取数据时出错:%s  %s', d['id'], e)
                 logging.error(traceback.format_exc())
-                break
             finally:
                 sql = "insert into mark (type,value) values (1, '%s') on duplicate key update value='%s'"
                 sql = sql % (d['id'], d['id'])

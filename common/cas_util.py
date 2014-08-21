@@ -31,3 +31,4 @@ if __name__ == '__main__':
     print cu.cas_check('67214-05-5')
     print cu.cas_check('32780-06-6')
     print cu.cas_check('32780-06-7')
+    print cu.cas_check('64-18-6 (Parent)')
