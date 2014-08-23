@@ -1,0 +1,290 @@
+# -*- coding: utf-8 -*-
+import json, base64
+import logging
+import os, sys
+import signal
+from tornado.options import define, options
+import traceback
+try:
+    import python_tool
+except ImportError:
+    fp = os.path.abspath(__file__)
+    sys.path.append(fp[0:fp.rfind('python_tool') + 11])
+from common.con_util import ConUtil
+from dict_compound import DictCompound
+import dict_conf
+import CK
+
+class DictWorkerV2(DictCompound):
+    
+    def __init__(self):
+        DictCompound.__init__(self)
+        if not os.path.exists(dict_conf.worker_bitmapdir):
+            os.makedirs(dict_conf.worker_bitmapdir)
+        self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_WORKER)
+        signal.signal(signal.SIGALRM, self.__getattribute__("handler"))
+        sql = 'select fpdef from moldb_fpdef'
+        rs = self.db_dict.query(sql)
+        for r in rs:
+            self.fpdef = r['fpdef']
+    
+    def handler(self, signum, frame):
+        raise Exception(u"Process Timeout")
+
+    def read_redis_data(self):
+        dict_v = self.redis_server.rpop(CK.R_DICT_CREATE)
+        logging.info(u'接收到的任务为:%s', dict_v)
+        dict_j = json.loads(dict_v)
+        self.write_dic(dict_j)
+
+    def get_start_molid(self):
+        sql = 'select max(mol_id) as mol_id from search_moldata'
+        rs = self.db_dict.query(sql)
+        for r in rs:
+            mol_id = r['mol_id']
+        if not mol_id:
+            mol_id = 0
+        return mol_id
+    
+    def write_dic(self, data_dict):
+        logging.info(u"处理属性:%s数据", data_dict)
+        if not self.cu.cas_check(data_dict['cas_no']):
+            return
+
+        self.fu.delete_file(self.tmp_mol1)
+        mol1_writer = open(self.tmp_mol1, 'w')
+        mol1_writer.write(data_dict['mol'])
+        mol1_writer.close()
+        check_mol_id = self.check_match(data_dict['cas_no'], data_dict['mol'])
+        # 字典中有相应的数据
+        if check_mol_id > 0:
+            return
+        else:
+            mol_id = self.get_start_molid() + 1
+        
+        redis_msg = {}
+        redis_msg['mol_id'] = mol_id
+        params = [mol_id]
+        params.append(data_dict['name_en'])
+        params.append(data_dict['name_en_alias'])
+        params.append(data_dict['name_cn'])
+        params.append(data_dict['name_cn_alias'])
+        params.append(data_dict['cas_no'])
+        c = "obprop %s 2>/dev/null | awk -F\"\\t\" '{print $1}' | cut -c 17- | head -16 | tail -15"
+        c = c % (self.tmp_mol1)
+        result = os.popen(c).read()
+        results = result.split('\n');
+        for i in range(0, 15):
+            v = results[i].strip()
+            if not v:
+                continue
+            params.append(v)
+            # print "%s : %s" % ((i + 1), v)
+
+        if check_mol_id < 0 :
+            sql = '''INSERT INTO search_moldata (mol_id, mol_name, en_synonyms, zh_synonyms, name_cn, cas_no, 
+                                                    formula,mol_weight,exact_mass,smiles,inchi,
+                                                    num_atoms,num_bonds,num_residues,sequence,
+                                                    num_rings,logp,psa,mr,goods_count) VALUES (
+                                                    %s,%s,%s,%s,%s,%s,
+                                                    %s,%s,%s,%s,%s,
+                                                    %s,%s,%s,%s,
+                                                    %s,%s,%s,%s,0
+                                                    )'''
+            logging.info(u"写入新数据,mol_id:%s!", mol_id)
+            # logging.info(sql)
+            self.db_dict.insert(sql, *params)
+            redis_msg['moldata'] = {'type':'insert', 'sql':sql, 'params':params}
+        else:
+            sql = '''update search_moldata  set formula=%s,mol_weight=%s,exact_mass=%s,smiles=%s,inchi=%s,
+                                                    num_atoms=%s,num_bonds=%s,num_residues=%s,sequence=%s,
+                                                    num_rings=%s,logp=%s,psa=%s,mr=%s
+                                                    where mol_id=%s
+                                                    '''
+            logging.info(u"更新数据,mol_id:%s!", mol_id)
+            u_params = params[6:]
+            u_params.append(mol_id)
+            self.db_dict.execute(sql, *u_params)
+            redis_msg['moldata'] = {'type':'update', 'sql':sql, 'params':params}
+        self.delete_data(mol_id)
+        # 对mol文件进行相应的格式化
+        c = "echo \"%s\" | checkmol -m - 2>&1" % data_dict['mol']
+        result = os.popen(c).read()
+        data_dict['mol'] = result
+        # print "molformat>>>" + result
+        sql = "insert into search_molstruc values (%s,%s,0,0)"
+        params = [mol_id, data_dict['mol']]
+        self.db_dict.insert(sql, *params)
+        redis_msg['molstruc'] = {'sql':sql, 'params':params}
+        c = "echo \"%s\" | checkmol -aXbH - 2>&1" % data_dict['mol']
+        result = os.popen(c).read()
+        # print result
+        results = result.split("\n")
+        molstat = results[0]
+        molfgb = results[1]
+        molhfp = results[2]
+        if ('unknown' not in molstat) and ('invalid' not in molstat):
+            self.delete_stat_table(mol_id)
+            sql = 'insert into search_molstat values (%s,%s)' % (mol_id, molstat)
+            # logging.info(u"执行的sql:%s", sql)
+            self.db_dict.insert(sql)
+            redis_msg['molstat'] = {'sql':sql, 'params':[]}
+            molfgb = molfgb.replace(';', ',')
+            sql = 'insert into search_molfgb values (%s,%s)' % (mol_id, molfgb)
+            self.db_dict.insert(sql)
+            redis_msg['molfgb'] = {'sql':sql, 'params':[]}
+            molhfp = molhfp.replace(';', ',')
+            sql = 'insert into search_molcfp values (%s,%s,%s)'
+            cand = "%s$$$$%s" % (data_dict['mol'], self.fpdef)
+            cand = cand.replace('$', '\$')
+            c = "echo \"%s\" | %s -F - 2>&1" % (cand, dict_conf.MATCHMOL)
+            result = os.popen(c).read().replace('\n', '')
+            sql = sql % (mol_id, result, molhfp)
+            self.db_dict.insert(sql)
+            redis_msg['molcfp'] = {'sql':sql, 'params':[]}
+        pic_path = str(mol_id)
+        while len(pic_path) < 8:
+            pic_path = '0' + pic_path
+        pic_dir = pic_path[0:4]
+        pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
+        pic_fp = dict_conf.worker_bitmapdir + '/' + pic_dir
+        if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
+            os.makedirs(pic_fp[0:pic_fp.rfind('/')])
+        self.fu.delete_file(pic_fp)
+        # print pic_fp
+        # print pic_dir
+        c = "echo \"%s\" | %s %s - 2>&1"
+        c = c % (data_dict['mol'], dict_conf.MOL2PS, dict_conf.mol2psopt)
+        molps = os.popen(c).read()
+        c = "echo \"%s\" | %s -q -sDEVICE=bbox -dNOPAUSE -dBATCH  -r300 -g500000x500000 - 2>&1"
+        c = c % (molps, dict_conf.GHOSTSCRIPT)
+        bb = os.popen(c).read()
+        bbs = bb.split('\n')
+        bblores = bbs[0].replace('%%BoundingBox:', '').lstrip()
+        bbcorner = bblores.split(' ')
+        if len(bbcorner) >= 4:
+            bbleft = int(bbcorner[0])
+            bbbottom = int(bbcorner[1])
+            bbright = int(bbcorner[2])
+            bbtop = int(bbcorner[3])
+            xtotal = (bbright + bbleft) * dict_conf.scalingfactor
+            ytotal = (bbtop + bbbottom) * dict_conf.scalingfactor
+        if xtotal > 0 and ytotal > 0:
+            molps = '%s %s scale\n%s' % (dict_conf.scalingfactor, dict_conf.scalingfactor, molps)
+        else:
+            xtotal = 99; ytotal = 55
+            molps = '''%!PS-Adobe
+                    /Helvetica findfont 14 scalefont setfont
+                    10 30 moveto
+                    (2D structure) show
+                    10 15 moveto
+                    (not available) show
+                    showpage\n''';
+        gsopt1 = " -r300 -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -dDEVICEWIDTHPOINTS=%s -dDEVICEHEIGHTPOINTS=%s -sOutputFile=%s"
+        gsopt1 = gsopt1 % (xtotal, ytotal, pic_fp)
+        c = "echo \"%s\" | %s -q -sDEVICE=pnggray -dNOPAUSE -dBATCH %s - "
+        c = c % (molps, dict_conf.GHOSTSCRIPT, gsopt1)
+        # print 'command>>' + c
+        result = os.popen(c).read()
+        # print 'pic_result>>' + result
+        c = "file \"%s\" | awk '{print $5, $7}' | awk -F\",\" '{print $1}'"
+        c = c % pic_fp
+        result = os.popen(c).read().replace('\n', '')
+        pic_width = result.split(' ')[0]
+        pic_height = result.split(' ')[1]
+        status = 1
+        # print 'pic_size>>' + result
+        sql = "insert into search_pic2d (mol_id,type,status,s_pic,s_width,s_height) values (%s,1,%s,%s,%s,%s)"
+        params = [mol_id, status, pic_dir, pic_width, pic_height]
+        # print sql
+        self.db_dict.insert(sql, *params);
+        redis_msg['pic2d'] = {'sql':sql, 'params':params}
+        img_reader = open(pic_fp, 'rb')
+        v_img = img_reader.read()
+        img_reader.close()
+        e_img = base64.encodestring(v_img)
+        redis_msg['mol_pic'] = e_img
+        redis_msg['mol_pic_path'] = pic_dir
+        redis_msg = json.dumps(redis_msg)
+        self.redis_server.rpush(CK.R_DICT_IMPORT, redis_msg)
+        return mol_id
+    
+    def read_sql(self, mol_id):
+        sql = 'select * from search_moldata where mol_id=%s'
+        columns = ['mol_id', 'mol_name', 'en_synonyms', 'zh_synonyms', 'name_cn', 'cas_no', 'formula', 'mol_weight', 'exact_mass', 'smiles', 'inchi', 'num_atoms', 'num_bonds', 'num_residues', 'sequence', 'num_rings', 'logp', 'psa', 'mr']
+        rs = self.db_dict.query(sql, mol_id)
+        sql = 'insert into search_moldata (%s) values ('
+        sql = sql % str(columns)[1:len(str(columns)) - 1]
+        params = []
+        for r in rs:
+            for column in columns:
+                params.append(r[column])
+                sql += '%s,'
+        sql = sql[:len(sql) - 1]
+        sql += ')'
+        # print sql
+        redis_msg = []
+        print self.generate_sql(redis_msg, 'search_molstruc', mol_id, columns)
+        print self.generate_sql(redis_msg, 'search_molstat', mol_id, columns)
+        print self.generate_sql(redis_msg, 'search_molfgb', mol_id, columns)
+        print self.generate_sql(redis_msg, 'search_molcfp', mol_id, columns)
+        print self.generate_sql(redis_msg, 'search_pic2d', mol_id, columns)
+    
+    def generate_sql(self, redis_msg, table_name, mol_id, columns):
+        sql = 'select * from ' + table_name + ' where mol_id=%s'
+        rs = self.db_dict.query(sql, mol_id)
+        params = []
+        columns = []
+        for r in rs:
+            for key in r.keys():
+                params.append(r[key])
+                columns.append(key)
+        sql = 'insert into %s (%s) values (%s)'
+        sql = sql % (table_name, str(columns).replace('[', '').replace(']', ''), '%s,' * len(columns))
+        sql = sql.replace(',)', ')')
+        # print sql
+        return sql
+    
+    def import_img(self, redis_msg, mol_id):
+        sql = 'select * from search_pic2d where mol_id=%s'
+        rs = self.db_dict.query(sql, mol_id)
+        pic_path = ''
+        for r in rs:
+            pic_path = dict_conf.worker_bitmapdir + '/' + r['s_pic']
+    
+    def test_read_img(self):
+        img_path = '/home/kulen/molpic/00/00/2.png'
+        img_reader = open(img_path, 'rb')
+        v = img_reader.read()
+        img_reader.close()
+        import base64
+        e_img = base64.encodestring(v)
+        img_path = '/home/kulen/molpic2/00/00/1.png'
+        img_writer = open(img_path, 'wb')
+        img_writer.write(base64.decodestring(e_img))
+        img_writer.close()
+
+if __name__ == '__main__':
+
+    logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
+    define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
+    define("func_name", default="import_table_data")
+    define("sdf_file", default="/home/kulen/Documents/xili_data/xili_2.sdf")
+    define("mol_id", default="-1")
+    options.parse_command_line()
+    logfile = options.logfile
+    sdf_file = options.sdf_file
+    func_name = options.func_name
+    mol_id = int(options.mol_id)
+    fmt = '%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s'
+    handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=100 * 1024 * 1024, backupCount=10)  # 实例化handler
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt)  # 实例化formatter
+    handler.setFormatter(formatter)  # 为handler添加formatter
+    logging.getLogger('').addHandler(handler)
+    logging.info(u'写入的日志文件为:%s', logfile)
+    worker = DictWorkerV2()
+    # worker.read_redis_data()
+    # worker.test_read_img()
+    worker.read_sql(6)
+    logging.info(u'程序运行完成')

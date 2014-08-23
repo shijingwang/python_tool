@@ -18,10 +18,10 @@ import dict_conf
 class DictWorker(object):
     
     def __init__(self):
-        self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT)
+        self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_WORKER)
         self.db_dict_source = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_SOURCE)
-        if not os.path.exists(dict_conf.bitmapdir):
-            os.makedirs(dict_conf.bitmapdir)
+        if not os.path.exists(dict_conf.worker_bitmapdir):
+            os.makedirs(dict_conf.worker_bitmapdir)
         self.tmp_mol1 = '/tmp/mol1.mol';self.tmp_mol2 = '/tmp/mol2.mol'
         self.i_mol_id = self.get_start_molid()
         self.cu = CasUtil()
@@ -243,7 +243,7 @@ class DictWorker(object):
             pic_path = '0' + pic_path
         pic_dir = pic_path[0:4]
         pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
-        pic_fp = dict_conf.bitmapdir + '/' + pic_dir
+        pic_fp = dict_conf.worker_bitmapdir + '/' + pic_dir
         if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
             os.makedirs(pic_fp[0:pic_fp.rfind('/')])
         self.delete_file(pic_fp)
