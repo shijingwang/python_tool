@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import json, base64
 import logging
-import os, sys
+import os, sys, time
+import threading
 import signal
 from tornado.options import define, options
 import traceback
@@ -31,20 +32,23 @@ class DictWorkerV2(DictCompound):
     def handler(self, signum, frame):
         raise Exception(u"Process Timeout")
 
-    def read_redis_data(self):
+    def read_dict_task(self):
         dict_v = self.redis_server.rpop(CK.R_DICT_CREATE)
+        if not dict_v:
+            return
         logging.info(u'接收到的任务为:%s', dict_v)
         dict_j = json.loads(dict_v)
         self.write_dic(dict_j)
 
-    def get_start_molid(self):
-        sql = 'select max(mol_id) as mol_id from search_moldata'
-        rs = self.db_dict.query(sql)
-        for r in rs:
-            mol_id = r['mol_id']
-        if not mol_id:
-            mol_id = 0
-        return mol_id
+    def read_dict_task_thread(self):
+        logging.info(u'启动字典创建同步线程')
+        while True:
+            size = self.redis_server.llen(CK.R_DICT_CREATE)
+            logging.info(u'DictCreate队列中的数据大小为:%s', size)
+            if size == 0:
+                time.sleep(1)
+                continue
+            self.read_dict_task()    
     
     def write_dic(self, data_dict):
         logging.info(u"处理属性:%s数据", data_dict)
@@ -62,8 +66,6 @@ class DictWorkerV2(DictCompound):
         else:
             mol_id = self.get_start_molid() + 1
         
-        redis_msg = {}
-        redis_msg['mol_id'] = mol_id
         params = [mol_id]
         params.append(data_dict['name_en'])
         params.append(data_dict['name_en_alias'])
@@ -94,7 +96,6 @@ class DictWorkerV2(DictCompound):
             logging.info(u"写入新数据,mol_id:%s!", mol_id)
             # logging.info(sql)
             self.db_dict.insert(sql, *params)
-            redis_msg['moldata'] = {'type':'insert', 'sql':sql, 'params':params}
         else:
             sql = '''update search_moldata  set formula=%s,mol_weight=%s,exact_mass=%s,smiles=%s,inchi=%s,
                                                     num_atoms=%s,num_bonds=%s,num_residues=%s,sequence=%s,
@@ -105,7 +106,6 @@ class DictWorkerV2(DictCompound):
             u_params = params[6:]
             u_params.append(mol_id)
             self.db_dict.execute(sql, *u_params)
-            redis_msg['moldata'] = {'type':'update', 'sql':sql, 'params':params}
         self.delete_data(mol_id)
         # 对mol文件进行相应的格式化
         c = "echo \"%s\" | checkmol -m - 2>&1" % data_dict['mol']
@@ -115,7 +115,6 @@ class DictWorkerV2(DictCompound):
         sql = "insert into search_molstruc values (%s,%s,0,0)"
         params = [mol_id, data_dict['mol']]
         self.db_dict.insert(sql, *params)
-        redis_msg['molstruc'] = {'sql':sql, 'params':params}
         c = "echo \"%s\" | checkmol -aXbH - 2>&1" % data_dict['mol']
         result = os.popen(c).read()
         # print result
@@ -128,11 +127,9 @@ class DictWorkerV2(DictCompound):
             sql = 'insert into search_molstat values (%s,%s)' % (mol_id, molstat)
             # logging.info(u"执行的sql:%s", sql)
             self.db_dict.insert(sql)
-            redis_msg['molstat'] = {'sql':sql, 'params':[]}
             molfgb = molfgb.replace(';', ',')
             sql = 'insert into search_molfgb values (%s,%s)' % (mol_id, molfgb)
             self.db_dict.insert(sql)
-            redis_msg['molfgb'] = {'sql':sql, 'params':[]}
             molhfp = molhfp.replace(';', ',')
             sql = 'insert into search_molcfp values (%s,%s,%s)'
             cand = "%s$$$$%s" % (data_dict['mol'], self.fpdef)
@@ -141,12 +138,7 @@ class DictWorkerV2(DictCompound):
             result = os.popen(c).read().replace('\n', '')
             sql = sql % (mol_id, result, molhfp)
             self.db_dict.insert(sql)
-            redis_msg['molcfp'] = {'sql':sql, 'params':[]}
-        pic_path = str(mol_id)
-        while len(pic_path) < 8:
-            pic_path = '0' + pic_path
-        pic_dir = pic_path[0:4]
-        pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
+        pic_dir = self.generate_pic_path(mol_id)
         pic_fp = dict_conf.worker_bitmapdir + '/' + pic_dir
         if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
             os.makedirs(pic_fp[0:pic_fp.rfind('/')])
@@ -198,71 +190,95 @@ class DictWorkerV2(DictCompound):
         params = [mol_id, status, pic_dir, pic_width, pic_height]
         # print sql
         self.db_dict.insert(sql, *params);
-        redis_msg['pic2d'] = {'sql':sql, 'params':params}
+        redis_msg = {}
+        self.read_sql(redis_msg, mol_id)
+        self.read_img(redis_msg, mol_id)
+        redis_msg = json.dumps(redis_msg)
+        print redis_msg
+        self.redis_server.rpush(CK.R_DICT_IMPORT, redis_msg)
+        return mol_id
+    
+    def read_img(self, redis_msg, mol_id):
+        sql = 'select * from search_pic2d where mol_id=%s'
+        rs = self.db_dict.query(sql, mol_id)
+        pic_fp = ''
+        for r in rs:
+            pic_fp = dict_conf.worker_bitmapdir + '/' + r['s_pic']
+            redis_msg['mol_pic_path'] = r['s_pic']
         img_reader = open(pic_fp, 'rb')
         v_img = img_reader.read()
         img_reader.close()
         e_img = base64.encodestring(v_img)
         redis_msg['mol_pic'] = e_img
-        redis_msg['mol_pic_path'] = pic_dir
-        redis_msg = json.dumps(redis_msg)
-        self.redis_server.rpush(CK.R_DICT_IMPORT, redis_msg)
-        return mol_id
     
-    def read_sql(self, mol_id):
-        sql = 'select * from search_moldata where mol_id=%s'
-        columns = ['mol_id', 'mol_name', 'en_synonyms', 'zh_synonyms', 'name_cn', 'cas_no', 'formula', 'mol_weight', 'exact_mass', 'smiles', 'inchi', 'num_atoms', 'num_bonds', 'num_residues', 'sequence', 'num_rings', 'logp', 'psa', 'mr']
-        rs = self.db_dict.query(sql, mol_id)
-        sql = 'insert into search_moldata (%s) values ('
-        sql = sql % str(columns)[1:len(str(columns)) - 1]
-        params = []
-        for r in rs:
-            for column in columns:
-                params.append(r[column])
-                sql += '%s,'
-        sql = sql[:len(sql) - 1]
-        sql += ')'
-        # print sql
-        redis_msg = []
-        print self.generate_sql(redis_msg, 'search_molstruc', mol_id, columns)
-        print self.generate_sql(redis_msg, 'search_molstat', mol_id, columns)
-        print self.generate_sql(redis_msg, 'search_molfgb', mol_id, columns)
-        print self.generate_sql(redis_msg, 'search_molcfp', mol_id, columns)
-        print self.generate_sql(redis_msg, 'search_pic2d', mol_id, columns)
-    
-    def generate_sql(self, redis_msg, table_name, mol_id, columns):
-        sql = 'select * from ' + table_name + ' where mol_id=%s'
-        rs = self.db_dict.query(sql, mol_id)
-        params = []
-        columns = []
-        for r in rs:
-            for key in r.keys():
-                params.append(r[key])
-                columns.append(key)
-        sql = 'insert into %s (%s) values (%s)'
-        sql = sql % (table_name, str(columns).replace('[', '').replace(']', ''), '%s,' * len(columns))
-        sql = sql.replace(',)', ')')
-        # print sql
-        return sql
-    
-    def import_img(self, redis_msg, mol_id):
+    def syn_dict(self):
+        dict_v = self.redis_server.rpop(CK.R_DICT_SYN)
+        if not dict_v:
+            return
+        dict_j = json.loads(dict_v)
+        mol_id = dict_j['mol_id']
+        # 本地数据的新mol_id
+        new_mol_id = self.get_write_molid()
+        # 更改mol_id数据, 原mol_id换id
+        sql = 'update search_moldata set mol_id=%s where mol_id=%s'
+        self.db_dict.execute(sql, new_mol_id, mol_id)
+        sql = 'update search_molstruc set mol_id=%s where mol_id=%s'
+        self.db_dict.execute(sql, new_mol_id, mol_id)
+        sql = 'update search_pic2d set mol_id=%s where mol_id=%s'
+        self.db_dict.execute(sql, new_mol_id, mol_id)
+        sql = 'update search_molstat set mol_id=%s where mol_id=%s'
+        self.db_dict.execute(sql, new_mol_id, mol_id)
+        sql = 'update search_molfgb set mol_id=%s where mol_id=%s'
+        self.db_dict.execute(sql, new_mol_id, mol_id)
+        sql = 'update search_molcfp set mol_id=%s where mol_id=%s'
+        self.db_dict.execute(sql, new_mol_id, mol_id)
+       
+        
+        # 修改图片路径
+        new_pic_dir = self.generate_pic_path(new_mol_id)
+        new_pic_fp = dict_conf.worker_bitmapdir + '/' + new_pic_dir
+        old_pic_dir = ''
         sql = 'select * from search_pic2d where mol_id=%s'
-        rs = self.db_dict.query(sql, mol_id)
-        pic_path = ''
+        rs = self.db_dict.query(sql, new_mol_id)
         for r in rs:
-            pic_path = dict_conf.worker_bitmapdir + '/' + r['s_pic']
+            old_pic_dir = r['s_pic']
+        old_pic_fp = dict_conf.worker_bitmapdir + '/' + old_pic_dir
+        self.fu.copy_file(old_pic_fp, new_pic_fp)
+        
+        # //删除相应的数据
+        sql = 'delete from search_moldata where mol_id=%s'
+        self.db_dict.query(sql, mol_id)
+        self.delete_data(mol_id)
+        # 写入服务端的数据
+        self.write_json_data(mol_id, dict_j)
+        
+    def generate_pic_path(self, mol_id):
+        pic_path = str(mol_id)
+        while len(pic_path) < 8:
+            pic_path = '0' + pic_path
+        pic_dir = pic_path[0:4]
+        pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
+        return pic_path
     
-    def test_read_img(self):
-        img_path = '/home/kulen/molpic/00/00/2.png'
-        img_reader = open(img_path, 'rb')
-        v = img_reader.read()
-        img_reader.close()
-        import base64
-        e_img = base64.encodestring(v)
-        img_path = '/home/kulen/molpic2/00/00/1.png'
-        img_writer = open(img_path, 'wb')
-        img_writer.write(base64.decodestring(e_img))
-        img_writer.close()
+    def syn_dict_thread(self):
+        logging.info(u'启动字典数据同步线程')
+        while True:
+            size = self.redis_server.llen(CK.R_DICT_SYN)
+            logging.info(u'DictSyn队列中的数据大小为:%s', size)
+            if size == 0:
+                time.sleep(3)
+                continue
+            self.syn_dict()
+
+    def start_worker(self):
+        sync_dict_thread = self.__getattribute__('syn_dict_thread')
+        t1 = threading.Thread(target=sync_dict_thread)
+        t1.start()
+        
+        dict_task_thread = self.__getattribute__('read_dict_task_thread')
+        t2 = threading.Thread(target=dict_task_thread)
+        t2.start()
+        
 
 if __name__ == '__main__':
 
@@ -284,7 +300,5 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     worker = DictWorkerV2()
-    # worker.read_redis_data()
-    # worker.test_read_img()
-    worker.read_sql(6)
+    worker.start_worker()
     logging.info(u'程序运行完成')

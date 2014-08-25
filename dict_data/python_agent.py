@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from tornado.options import define, options
 import logging
-import os, sys
+import os, sys, time
 import traceback
 import json, base64
+import threading
 try:
     import python_tool
 except ImportError:
     fp = os.path.abspath(__file__)
     sys.path.append(fp[0:fp.rfind('python_tool') + 11])
-
 import dict_conf
 from common.con_util import ConUtil
 import CK
@@ -24,7 +24,7 @@ class PythonAgent(DictCompound):
             os.makedirs(dict_conf.worker_bitmapdir)
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_AGENT)
     
-    def read_redis_task(self):
+    def read_sdf_task(self):
         sdf_text = self.redis_server.rpop(CK.R_SDF_IMPORT)
         if not sdf_text:
             return
@@ -40,6 +40,15 @@ class PythonAgent(DictCompound):
         sql = 'insert into sdf_log (file_path,md5,import_time) values (%s,%s,now())'
         self.db_dict.insert(sql, *[file_path, md5])
         self.read_sdf(md5, file_path)
+    
+    def read_sdf_task_thread(self):
+        logging.info(u'启动SDF数据读取线程')
+        while True:
+            size = self.redis_server.llen(CK.R_SDF_IMPORT)
+            logging.info(u'SDF任务队列的大小为:%s', size)
+            if size > 0:
+                self.read_sdf_task()
+            time.sleep(5)
     
     def read_sdf(self, md5, file_path):
         logging.info(u'处理md5:%s  文件为:%s 的数据', md5, file_path)
@@ -149,9 +158,22 @@ class PythonAgent(DictCompound):
             data_dict['name_cn_alias'] = ''
         data_dict['mol'] = mol
         dict_create_json = json.dumps(data_dict)
+        # 推送任务
         self.redis_server.lpush(CK.R_DICT_CREATE, dict_create_json)
+        
+        counter = 0
         result['mol_id'] = -1
-        # TODO
+        while True:
+            counter += 1 
+            # 检查数据是否写完
+            sql = 'select * from search_moldata where cas_no=%s'
+            rs = self.db_dict.query(sql, data_dict['cas_no'])
+            for r in rs:
+                result['mol_id'] = r['mol_id']
+                break
+            if counter >= 6:
+                break
+            time.sleep(2)
         return result
     
     def import_dict(self):
@@ -164,20 +186,41 @@ class PythonAgent(DictCompound):
         sql = 'select * from search_moldata where mol_id=%s'
         rs = self.db_dict.query(sql, mol_id)
         if len(rs) > 0 and dict_j['moldata']['type'] == 'insert':
+            for r in rs:
+                if r['cas_no'] == dict_j['cas_no'] and r['formula'] == dict_j['formula']:                    
+                    pass
+                else:
+                    # 将用户新增数据同步出去
+                    redis_msg = {} 
+                    self.read_sql(redis_msg, r['mol_id'])
+                    self.redis_server.lpush(CK.R_DICT_SYN, redis_msg)
             logging.warn(u'处理数据时，数据库中已经有相应的记录:%s', dict_v)
             return
-        logging.info(u'写入mol_id:%s  操作类型:%s 的数据', mol_id, dict_j['moldata']['type'])
-        self.db_dict.execute(dict_j['moldata']['sql'], *dict_j['moldata']['params'])
-        self.db_dict.execute(dict_j['molstruc']['sql'], *dict_j['molstruc']['params'])
-        self.db_dict.execute(dict_j['molstat']['sql'], *dict_j['molstat']['params'])
-        self.db_dict.execute(dict_j['molfgb']['sql'], *dict_j['molfgb']['params'])
-        self.db_dict.execute(dict_j['molcfp']['sql'], *dict_j['molcfp']['params'])
-        self.db_dict.execute(dict_j['pic2d']['sql'], *dict_j['pic2d']['params'])
+        self.write_json_data(mol_id, dict_j)
         # 写入图片数据
         img_writer = open(dict_conf.agent_bitmapdir + '/' + dict_j['mol_pic_path'], 'wb')
         img_writer.write(base64.decodestring(dict_j['mol_pic']))
         img_writer.close()
+    
+    def import_dict_thread(self):
+        logging.info(u'启动字典数据写入线程')
+        while True:
+            size = self.redis_server.llen(CK.R_DICT_IMPORT)
+            logging.info(u'Dict队列中的数据大小为:%s', size)
+            if size == 0:
+                time.sleep(3)
+                continue
+            self.import_dict()
 
+    def start_agent(self):
+        dict_thread = self.__getattribute__('import_dict_thread')
+        t1 = threading.Thread(target=dict_thread)
+        t1.start()
+        
+        sdf_thread = self.__getattribute__('read_sdf_task_thread')
+        t2 = threading.Thread(target=sdf_thread)
+        t2.start()
+        
 if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
@@ -194,10 +237,11 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     pa = PythonAgent()
-    '''
-    pa.db_dict.execute('truncate table sdf_log;')
-    pa.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "file_path":"/home/kulen/Documents/xili_data/xili_3.sdf"}')
-    pa.read_redis_task()
+    pa.start_agent()
     '''
     pa.import_dict()
+    pa.db_dict.execute('truncate table sdf_log;')
+    pa.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
+    pa.read_redis_task()
+    '''
     logging.info(u'程序运行完成')

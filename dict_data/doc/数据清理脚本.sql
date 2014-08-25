@@ -21,3 +21,6 @@ truncate table search_molcfp;
 
 insert into fragment_origin (cas,cmpdiupacname,Inchi,Canonical_SMILES) select cas,'',target_inchi,target_smile from etl;
 insert into fragment_pubchem (cas,cmpdiupacname,Inchi,Canonical_SMILES) select cas,'',source_inchi,source_smile from etl;
+
+mysqldump -h172.16.1.104 -uleon -pmolbase1010 z_dic_molbase search_moldata search_molcfp search_molfgb search_molstat search_molstruc search_pic2d -t -w "mol_id>2391105">/tmp/dict_insertv2.sql
+mysqldump -h172.16.1.104 -uleon -pmolbase1010 z_dic_molbase search_moldata search_molcfp search_molfgb search_molstat search_molstruc search_pic2d -t -w "mol_id>2395721">/tmp/dict_insert_pubchem.sql
