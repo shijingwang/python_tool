@@ -64,7 +64,7 @@ class DictWorkerV2(DictCompound):
         if check_mol_id > 0:
             return
         else:
-            mol_id = self.get_start_molid() + 1
+            mol_id = self.get_write_molid()
         
         params = [mol_id]
         params.append(data_dict['name_en'])
@@ -194,7 +194,7 @@ class DictWorkerV2(DictCompound):
         self.read_sql(redis_msg, mol_id)
         self.read_img(redis_msg, mol_id)
         redis_msg = json.dumps(redis_msg)
-        print redis_msg
+        # print redis_msg
         self.redis_server.rpush(CK.R_DICT_IMPORT, redis_msg)
         return mol_id
     

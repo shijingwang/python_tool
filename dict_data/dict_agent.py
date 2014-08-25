@@ -16,7 +16,7 @@ import CK
 from dict_compound import DictCompound
 
 
-class PythonAgent(DictCompound):
+class DictAgent(DictCompound):
     
     def __init__(self):
         DictCompound.__init__(self)
@@ -159,7 +159,7 @@ class PythonAgent(DictCompound):
         data_dict['mol'] = mol
         dict_create_json = json.dumps(data_dict)
         # 推送任务
-        self.redis_server.lpush(CK.R_DICT_CREATE, dict_create_json)
+        self.redis_server.rpush(CK.R_DICT_CREATE, dict_create_json)
         
         counter = 0
         result['mol_id'] = -1
@@ -236,8 +236,8 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)  # 为handler添加formatter
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
-    pa = PythonAgent()
-    pa.start_agent()
+    da = DictAgent()
+    da.start_agent()
     '''
     pa.import_dict()
     pa.db_dict.execute('truncate table sdf_log;')

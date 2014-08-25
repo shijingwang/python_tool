@@ -53,9 +53,7 @@ class DictCompound(object):
         result1 = result1.replace(';', ' and ').replace(':', '=').replace('n_', 'stat.n_')
         sql = 'select stat.mol_id,struc.struc from search_molstat as stat, search_molstruc as struc where (%s) and (stat.mol_id=struc.mol_id)'
         sql = sql % (result1)
-        # print "[%s]" % result1
-        # print "[%s]" % result2
-        logging.info(u"执行的sql:%s", sql)
+        # logging.info(u"执行的sql:%s", sql)
         rs = self.db_dict.query(sql)
         if len(rs) == 0:
             return -1
