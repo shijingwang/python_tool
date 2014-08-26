@@ -36,7 +36,8 @@ class DictWorkerV2(DictCompound):
         dict_v = self.redis_server.rpop(CK.R_DICT_CREATE)
         if not dict_v:
             return
-        logging.info(u'接收到的任务为:%s', dict_v)
+        # logging.info(u'接收到的任务为:%s', dict_v)
+        self.db_dict.reconnect()
         dict_j = json.loads(dict_v)
         self.write_dic(dict_j)
 
@@ -51,8 +52,9 @@ class DictWorkerV2(DictCompound):
             self.read_dict_task()    
     
     def write_dic(self, data_dict):
-        logging.info(u"处理属性:%s数据", data_dict)
+        logging.info(u"处理cas_no:%s name:%s", data_dict['cas_no'], data_dict.get('name_en', ''))
         if not self.cu.cas_check(data_dict['cas_no']):
+            logging.warn(u'CAS号校验未通过!')
             return
 
         self.fu.delete_file(self.tmp_mol1)
@@ -62,6 +64,7 @@ class DictWorkerV2(DictCompound):
         check_mol_id = self.check_match(data_dict['cas_no'], data_dict['mol'])
         # 字典中有相应的数据
         if check_mol_id > 0:
+            logging.warn(u'数据已经存在!')
             return
         else:
             mol_id = self.get_write_molid()
@@ -195,7 +198,7 @@ class DictWorkerV2(DictCompound):
         self.read_img(redis_msg, mol_id)
         redis_msg = json.dumps(redis_msg)
         # print redis_msg
-        self.redis_server.rpush(CK.R_DICT_IMPORT, redis_msg)
+        self.redis_server.lpush(CK.R_DICT_IMPORT, redis_msg)
         return mol_id
     
     def read_img(self, redis_msg, mol_id):
@@ -215,10 +218,13 @@ class DictWorkerV2(DictCompound):
         dict_v = self.redis_server.rpop(CK.R_DICT_SYN)
         if not dict_v:
             return
+        self.db_dict.reconnect()
+        
         dict_j = json.loads(dict_v)
         mol_id = dict_j['mol_id']
         # 本地数据的新mol_id
         new_mol_id = self.get_write_molid()
+        logging.info(u'线上字典数据库同步数据mol_id:%s, 本地字典的mol_id变为:%s', mol_id, new_mol_id)
         # 更改mol_id数据, 原mol_id换id
         sql = 'update search_moldata set mol_id=%s where mol_id=%s'
         self.db_dict.execute(sql, new_mol_id, mol_id)
@@ -258,7 +264,7 @@ class DictWorkerV2(DictCompound):
             pic_path = '0' + pic_path
         pic_dir = pic_path[0:4]
         pic_dir = '%s/%s/%s.png' % (pic_dir[0:2], pic_dir[2:4], mol_id)
-        return pic_path
+        return pic_dir
     
     def syn_dict_thread(self):
         logging.info(u'启动字典数据同步线程')
@@ -270,18 +276,20 @@ class DictWorkerV2(DictCompound):
                 continue
             self.syn_dict()
 
-    def start_worker(self):
+    def start_worker1(self):
         sync_dict_thread = self.__getattribute__('syn_dict_thread')
         t1 = threading.Thread(target=sync_dict_thread)
         t1.start()
-        
+    
+    def start_worker2(self):
         dict_task_thread = self.__getattribute__('read_dict_task_thread')
         t2 = threading.Thread(target=dict_task_thread)
-        t2.start()
-        
+        t2.start()      
 
 if __name__ == '__main__':
 
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
     define("func_name", default="import_table_data")
@@ -299,6 +307,13 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)  # 为handler添加formatter
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
-    worker = DictWorkerV2()
-    worker.start_worker()
+    worker1 = DictWorkerV2()
+    worker2 = DictWorkerV2()
+    worker1.start_worker1()
+    worker2.start_worker2()
+    
+    '''
+    worker1.read_dict_task()
+    
+    '''
     logging.info(u'程序运行完成')

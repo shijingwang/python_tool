@@ -29,6 +29,7 @@ class DictAgent(DictCompound):
         if not sdf_text:
             return
         logging.info(u'从redis接收数据:%s', sdf_text)
+        self.db_dict.reconnect()
         sdf_json = json.loads(sdf_text)
         md5 = sdf_json['file_key']
         file_path = sdf_json['file_path']
@@ -158,7 +159,7 @@ class DictAgent(DictCompound):
             data_dict['name_cn_alias'] = ''
         data_dict['mol'] = mol
         dict_create_json = json.dumps(data_dict)
-        # 推送任务
+        # 推送任务, rpush优先级比较高,rpop
         self.redis_server.rpush(CK.R_DICT_CREATE, dict_create_json)
         
         counter = 0
@@ -181,24 +182,29 @@ class DictAgent(DictCompound):
         if not dict_v:
             return
         # logging.info(u'接收到的字黄写入数据为:%s', dict_v)
+        self.db_dict.reconnect()
         dict_j = json.loads(dict_v)
         mol_id = dict_j['mol_id']
         sql = 'select * from search_moldata where mol_id=%s'
         rs = self.db_dict.query(sql, mol_id)
-        if len(rs) > 0 and dict_j['moldata']['type'] == 'insert':
+        if len(rs) > 0 and dict_j['search_moldata']['type'] == 'insert':
             for r in rs:
-                if r['cas_no'] == dict_j['cas_no'] and r['formula'] == dict_j['formula']:                    
+                if r['cas_no'] == dict_j['cas_no'] and r['formula'] == dict_j['formula']:
+                    logging.warn(u'mol_id:%s 记录已经在数据库中存在', mol_id)                    
                     pass
                 else:
                     # 将用户新增数据同步出去
                     redis_msg = {} 
                     self.read_sql(redis_msg, r['mol_id'])
                     self.redis_server.lpush(CK.R_DICT_SYN, redis_msg)
-            logging.warn(u'处理数据时，数据库中已经有相应的记录:%s', dict_v)
+                    logging.warn(u'mol_id:%s 是用户新增记录,需要将数据同步至离线数据库', mol_id)
             return
         self.write_json_data(mol_id, dict_j)
         # 写入图片数据
-        img_writer = open(dict_conf.agent_bitmapdir + '/' + dict_j['mol_pic_path'], 'wb')
+        pic_fp = dict_conf.agent_bitmapdir + '/' + dict_j['mol_pic_path']
+        if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
+            os.makedirs(pic_fp[0:pic_fp.rfind('/')])
+        img_writer = open(pic_fp, 'wb')
         img_writer.write(base64.decodestring(dict_j['mol_pic']))
         img_writer.close()
     
@@ -212,17 +218,20 @@ class DictAgent(DictCompound):
                 continue
             self.import_dict()
 
-    def start_agent(self):
+    def start_agent1(self):
         dict_thread = self.__getattribute__('import_dict_thread')
         t1 = threading.Thread(target=dict_thread)
         t1.start()
-        
+    
+    def start_agent2(self):
         sdf_thread = self.__getattribute__('read_sdf_task_thread')
         t2 = threading.Thread(target=sdf_thread)
         t2.start()
         
 if __name__ == '__main__':
 
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
     define("func_name", default="import_table_data")
@@ -236,12 +245,15 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)  # 为handler添加formatter
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
-    da = DictAgent()
-    da.start_agent()
+    da1 = DictAgent()
+    da2 = DictAgent()
+    da1.start_agent1()
+    da2.start_agent2()
     '''
-    pa.import_dict()
-    pa.db_dict.execute('truncate table sdf_log;')
-    pa.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
-    pa.read_redis_task()
+    da1.db_dict.execute('truncate table sdf_log;')
+    da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
+    da1.read_sdf_task()
+    da2.import_dict()
     '''
+    
     logging.info(u'程序运行完成')
