@@ -24,3 +24,10 @@ insert into fragment_pubchem (cas,cmpdiupacname,Inchi,Canonical_SMILES) select c
 
 mysqldump -h172.16.1.104 -uleon -pmolbase1010 z_dic_molbase search_moldata search_molcfp search_molfgb search_molstat search_molstruc search_pic2d -t -w "mol_id>2391105">/tmp/dict_insertv2.sql
 mysqldump -h172.16.1.104 -uleon -pmolbase1010 z_dic_molbase search_moldata search_molcfp search_molfgb search_molstat search_molstruc search_pic2d -t -w "mol_id>2395721">/tmp/dict_insert_pubchem.sql
+
+alter table search_moldata rename to search_moldata_bak;
+alter table search_molstruc rename to search_molstruc_bak;
+alter table search_pic2d rename to search_pic2d_bak;
+alter table search_molstat rename to search_molstat_bak;
+alter table search_molfgb rename to search_molfgb_bak;
+alter table search_molcfp rename to search_molcfp_bak;

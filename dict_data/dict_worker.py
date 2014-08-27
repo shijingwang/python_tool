@@ -357,14 +357,20 @@ class DictWorker(object):
         
     def update_stat_table(self):
         counter = 0
-        size = 5000
         while 1:
             if counter > 10000:
                 logging.info(u'循环次数过多,退出')
                 break 
-            sql = 'select * from search_molstruc limit %s, %s' % (counter * size, (counter + 1) * size)
+            sql = 'select max(mol_id) as mol_id from search_molstat'
             rs = self.db_dict.query(sql)
-            logging.info(u"需要修正的加速表的数据量为:%s", len(rs))
+            mol_id = 0
+            for r in rs:
+                mol_id = r['mol_id']
+                if not mol_id:
+                    mol_id = 0
+            sql = 'select * from search_molstruc where mol_id>%s limit 1000'
+            rs = self.db_dict.query(sql, mol_id)
+            logging.info(u"需要修正的加速表的数据量为:%s 起始mol_id:%s", len(rs), mol_id)
             for r in rs:
                 try:
                     c = "echo \"%s\" | %s -aXbHs 2>&1" % (r['struc'], dict_conf.CHECKMOL_V2)
@@ -426,9 +432,9 @@ class DictWorker(object):
                 data_dict = {'name_en':r['name_en'], 'name_en_alias':r['name_en_alias'], 'name_cn':r['name_cn'], 'name_cn_alias':r['name_cn_alias'], 'cas_no':r['cas_no']}
                 c = 'echo "%s" | babel -iinchi -omol --gen2d'
                 c = c % r['inchi']
-                #logging.info(u'执行生成mol命令:%s', c)
+                # logging.info(u'执行生成mol命令:%s', c)
                 result = os.popen(c).read()
-                #logging.info(u'生成mol的')
+                # logging.info(u'生成mol的')
                 self.write_dic(data_dict, result)
             except Exception, e:
                 logging.error(u"处理cas:%s 产品:%s ErrMsg:%s", r['cas_no'], r['name_en'], e)

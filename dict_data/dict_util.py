@@ -27,6 +27,7 @@ class DictUtil(DictCompound):
     def write_redis_data(self):
         self.redis_server.flushall()
         self.db_dict.execute('truncate table sdf_log')
+        #self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
         self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):

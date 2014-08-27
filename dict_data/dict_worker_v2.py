@@ -49,7 +49,11 @@ class DictWorkerV2(DictCompound):
             if size == 0:
                 time.sleep(1)
                 continue
-            self.read_dict_task()    
+            try:
+                self.read_dict_task()
+            except Exception, e:
+                logging.error(u"DictCreate队列中的数据处理出错,%s", e)
+                logging.error(traceback.format_exc())
     
     def write_dic(self, data_dict):
         logging.info(u"处理cas_no:%s name:%s", data_dict['cas_no'], data_dict.get('name_en', ''))
@@ -193,13 +197,18 @@ class DictWorkerV2(DictCompound):
         params = [mol_id, status, pic_dir, pic_width, pic_height]
         # print sql
         self.db_dict.insert(sql, *params);
+        
+        self.push_dict_data(mol_id)
+        return mol_id
+    
+    def push_dict_data(self, mol_id):
+        logging.info(u'将mol_id:%s 字典数据同步至服务端', mol_id)
         redis_msg = {}
         self.read_sql(redis_msg, mol_id)
         self.read_img(redis_msg, mol_id)
         redis_msg = json.dumps(redis_msg)
         # print redis_msg
         self.redis_server.lpush(CK.R_DICT_IMPORT, redis_msg)
-        return mol_id
     
     def read_img(self, redis_msg, mol_id):
         sql = 'select * from search_pic2d where mol_id=%s'
@@ -219,7 +228,7 @@ class DictWorkerV2(DictCompound):
         if not dict_v:
             return
         self.db_dict.reconnect()
-        
+        logging.info(u'返回的数据为:%s', dict_v)
         dict_j = json.loads(dict_v)
         mol_id = dict_j['mol_id']
         # 本地数据的新mol_id
@@ -251,12 +260,15 @@ class DictWorkerV2(DictCompound):
         old_pic_fp = dict_conf.worker_bitmapdir + '/' + old_pic_dir
         self.fu.copy_file(old_pic_fp, new_pic_fp)
         
-        # //删除相应的数据
+        # 删除mol_data的数据，以便将在线用户写入的字典数据同步过来
         sql = 'delete from search_moldata where mol_id=%s'
-        self.db_dict.query(sql, mol_id)
+        self.db_dict.execute(sql, mol_id)
         self.delete_data(mol_id)
         # 写入服务端的数据
         self.write_json_data(mol_id, dict_j)
+        
+        # 将本地更改mol_id的数据同步至服务端
+        self.push_dict_data(new_mol_id)
         
     def generate_pic_path(self, mol_id):
         pic_path = str(mol_id)
@@ -274,7 +286,11 @@ class DictWorkerV2(DictCompound):
             if size == 0:
                 time.sleep(3)
                 continue
-            self.syn_dict()
+            try:
+                self.syn_dict()
+            except Exception, e:
+                logging.error(u"DictSyn队列中的数据处理出错:%s", e)
+                logging.error(traceback.format_exc())
 
     def start_worker1(self):
         sync_dict_thread = self.__getattribute__('syn_dict_thread')
@@ -291,7 +307,7 @@ if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
+    define("logfile", default="/tmp/dict_worker.log", help="NSQ topic")
     define("func_name", default="import_table_data")
     define("sdf_file", default="/home/kulen/Documents/xili_data/xili_2.sdf")
     define("mol_id", default="-1")

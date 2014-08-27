@@ -67,6 +67,7 @@ class DictCompound(object):
             result = os.popen(c).read()
             # 返回相应的molid
             if ':T' in result:
+                logging.info(u'cas_no:%s 和 mol_id:%s 指向同一个产品', cas_no, r['mol_id'])
                 return r['mol_id']
         return -1
     
@@ -94,37 +95,46 @@ class DictCompound(object):
         sql = 'select * from search_moldata where mol_id=%s'
         columns = ['mol_id', 'mol_name', 'en_synonyms', 'zh_synonyms', 'name_cn', 'cas_no', 'formula', 'mol_weight', 'exact_mass', 'smiles', 'inchi', 'num_atoms', 'num_bonds', 'num_residues', 'sequence', 'num_rings', 'logp', 'psa', 'mr']
         rs = self.db_dict.query(sql, mol_id)
-        sql = 'insert into search_moldata (%s) values ('
-        sql = sql % str(columns)[1:len(str(columns)) - 1]
-        sql = sql.replace("'", "")
-        params = []
         for r in rs:
             for column in columns:
-                params.append(str(r[column]))
                 sql += '%s,'
                 if column == 'formula':
                     redis_msg['formula'] = r[column]
                 if column == 'cas_no':
                     redis_msg['cas_no'] = r[column]
-        sql = sql[:len(sql) - 1]
-        sql += ')'
         redis_msg['mol_id'] = mol_id
-        redis_msg['search_moldata'] = {'sql':sql, 'params':params, 'type':'insert'}
-        self.generate_sql(redis_msg, 'search_molstruc', mol_id, columns)
-        self.generate_sql(redis_msg, 'search_molstat', mol_id, columns)
-        self.generate_sql(redis_msg, 'search_molfgb', mol_id, columns)
-        self.generate_sql(redis_msg, 'search_molcfp', mol_id, columns)
-        self.generate_sql(redis_msg, 'search_pic2d', mol_id, columns)
+        self.generate_sql(redis_msg, 'search_moldata', mol_id, filter_columns=columns)
+        if 'search_moldata' in redis_msg:
+            redis_msg['search_moldata']['type'] = 'insert'
+        else:
+            logging.error(u'mol_id:%s moldata中没有相应的数据', mol_id)
+            return
+        self.generate_sql(redis_msg, 'search_molstruc', mol_id)
+        self.generate_sql(redis_msg, 'search_molstat', mol_id)
+        self.generate_sql(redis_msg, 'search_molfgb', mol_id)
+        self.generate_sql(redis_msg, 'search_molcfp', mol_id)
+        self.generate_sql(redis_msg, 'search_pic2d', mol_id)
     
-    def generate_sql(self, redis_msg, table_name, mol_id, columns):
+    def generate_sql(self, redis_msg, table_name, mol_id, filter_columns=[]):
         sql = 'select * from ' + table_name + ' where mol_id=%s'
         rs = self.db_dict.query(sql, mol_id)
         params = []
         columns = []
+        if len(rs) != 1:
+            return
         for r in rs:
             for key in r.keys():
-                params.append(str(r[key]))
-                columns.append(key)
+                if r[key] == None:
+                    continue
+                if len(filter_columns) > 0: 
+                    if key in filter_columns:
+                        params.append(str(r[key]))
+                        columns.append(key)
+                else:
+                    params.append(str(r[key]))
+                    columns.append(key)
+        if len(columns) == 0:
+            return
         sql = 'insert into %s (%s) values (%s)'
         sql = sql % (table_name, str(columns).replace('[', '').replace(']', '').replace("'", ""), '%s,' * len(columns))
         sql = sql.replace(',)', ')')
@@ -133,11 +143,11 @@ class DictCompound(object):
         return sql
 
     def write_json_data(self, mol_id, dict_j):
-        logging.info(u'写入mol_id:%s  操作类型:%s 的数据', mol_id, dict_j['search_moldata']['type'])       
-        self.db_dict.insert(dict_j['search_moldata']['sql'], *dict_j['search_moldata']['params'])
-        self.db_dict.insert(dict_j['search_molstruc']['sql'], *dict_j['search_molstruc']['params'])
-        self.db_dict.insert(dict_j['search_molstat']['sql'], *dict_j['search_molstat']['params'])
-        self.db_dict.insert(dict_j['search_molfgb']['sql'], *dict_j['search_molfgb']['params'])
-        self.db_dict.insert(dict_j['search_molcfp']['sql'], *dict_j['search_molcfp']['params'])
-        self.db_dict.insert(dict_j['search_pic2d']['sql'], *dict_j['search_pic2d']['params'])
+        logging.info(u'写入mol_id:%s  操作类型:%s 的数据', mol_id, dict_j['search_moldata']['type'])
+        for tb_name in ['search_moldata', 'search_molstruc', 'search_pic2d', 'search_molstat', 'search_molfgb', 'search_molcfp']:
+            if tb_name in dict_j:     
+                self.db_dict.insert(dict_j[tb_name]['sql'], *dict_j[tb_name]['params'])
+            else:
+                logging.info(u'mol_id:%s 无表:%s 数据', mol_id, tb_name)
+        
         

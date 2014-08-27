@@ -18,6 +18,7 @@ delete from search_pic2d where mol_id in (31,810,3648,5076,6610,7957,14351,25308
 
 
 mysqldump -h172.16.1.104 -uleon -pmolbase1010 z_dic_molbase search_moldata search_molcfp search_molfgb search_molstat search_molstruc search_pic2d -t -w "">/tmp/dict_update_fix.sql;
+mysqldump -h172.16.1.104 -uleon -pmolbase1010 z_dic_molbase search_moldata search_molcfp search_molfgb search_molstat search_molstruc search_pic2d>/tmp/dict_data.sql;
 
 
 

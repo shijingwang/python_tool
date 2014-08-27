@@ -47,9 +47,14 @@ class DictAgent(DictCompound):
         while True:
             size = self.redis_server.llen(CK.R_SDF_IMPORT)
             logging.info(u'SDF任务队列的大小为:%s', size)
-            if size > 0:
+            if size == 0:
+                time.sleep(3)
+                continue
+            try:
                 self.read_sdf_task()
-            time.sleep(5)
+            except Exception, e:
+                logging.error(u"SDF任务队列数据处理出错:%s", e)
+                logging.error(traceback.format_exc())
     
     def read_sdf(self, md5, file_path):
         logging.info(u'处理md5:%s  文件为:%s 的数据', md5, file_path)
@@ -196,6 +201,7 @@ class DictAgent(DictCompound):
                     # 将用户新增数据同步出去
                     redis_msg = {} 
                     self.read_sql(redis_msg, r['mol_id'])
+                    redis_msg = json.dumps(redis_msg)
                     self.redis_server.lpush(CK.R_DICT_SYN, redis_msg)
                     logging.warn(u'mol_id:%s 是用户新增记录,需要将数据同步至离线数据库', mol_id)
             return
@@ -212,11 +218,15 @@ class DictAgent(DictCompound):
         logging.info(u'启动字典数据写入线程')
         while True:
             size = self.redis_server.llen(CK.R_DICT_IMPORT)
-            logging.info(u'Dict队列中的数据大小为:%s', size)
+            logging.info(u'ImportDict队列中的数据大小为:%s', size)
             if size == 0:
                 time.sleep(3)
                 continue
-            self.import_dict()
+            try:
+                self.import_dict()
+            except Exception, e:
+                logging.error(u"ImportDict队列中的数据处理出错:%s", e)
+                logging.error(traceback.format_exc())
 
     def start_agent1(self):
         dict_thread = self.__getattribute__('import_dict_thread')
@@ -233,7 +243,7 @@ if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
+    define("logfile", default="/tmp/dict_agent.log", help="NSQ topic")
     define("func_name", default="import_table_data")
     options.parse_command_line()
     logfile = options.logfile
@@ -255,5 +265,4 @@ if __name__ == '__main__':
     da1.read_sdf_task()
     da2.import_dict()
     '''
-    
     logging.info(u'程序运行完成')
