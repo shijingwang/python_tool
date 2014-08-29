@@ -28,7 +28,7 @@ worker_bitmapdir = "/home/kulen/molpic2"
 SDF_RESULT_PATH = "/tmp/"
 scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
-REDIS_SERVER = {'host':'127.0.0.1', 'port':6379}
+REDIS_SERVER = {'host':'127.0.0.1', 'port':6380, 'password':'molbase1010'}
 SDF_KEY = {
            "cas_no":['CAS', 'CASNO.', 'CAS_NUMBER'],
            "name_en":['product_name', 'PRODUCT_NAME', 'COMPOUND_NAME', "ENG_Name"],

@@ -5,6 +5,7 @@ import os, sys, time
 import traceback
 import json, base64
 import threading
+import re
 try:
     import python_tool
 except ImportError:
@@ -22,6 +23,7 @@ class DictAgent(DictCompound):
         DictCompound.__init__(self)
         if not os.path.exists(dict_conf.worker_bitmapdir):
             os.makedirs(dict_conf.worker_bitmapdir)
+        self.n_p = re.compile(r'>\s*<\w+')
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_AGENT)
     
     def read_sdf_task(self):
@@ -33,30 +35,31 @@ class DictAgent(DictCompound):
         sdf_json = json.loads(sdf_text)
         md5 = sdf_json['file_key']
         file_path = sdf_json['file_path']
-        sql = 'select * from sdf_log where md5=%s'
+        code = sdf_json['code']
+        sql = 'select * from log_sdf where md5=%s'
         rs = self.db_dict.query(sql, md5)
         if len(rs) > 0:
             logging.warn(u'md5:%s file:%s 的数据已经处理', md5, file_path)
-            return
-        sql = 'insert into sdf_log (file_path,md5,import_time) values (%s,%s,now())'
+        sql = 'insert into log_sdf (file_path,md5,import_time) values (%s,%s,now())'
         self.db_dict.insert(sql, *[file_path, md5])
-        self.read_sdf(md5, file_path)
+        self.read_sdf(code, md5, file_path)
     
     def read_sdf_task_thread(self):
         logging.info(u'启动SDF数据读取线程')
         while True:
-            size = self.redis_server.llen(CK.R_SDF_IMPORT)
-            logging.info(u'SDF任务队列的大小为:%s', size)
-            if size == 0:
-                time.sleep(3)
-                continue
             try:
+                size = self.redis_server.llen(CK.R_SDF_IMPORT)
+                logging.info(u'SDF任务队列的大小为:%s', size)
+                if size == 0:
+                    time.sleep(3)
+                    continue
                 self.read_sdf_task()
             except Exception, e:
+                time.sleep(3)
                 logging.error(u"SDF任务队列数据处理出错:%s", e)
                 logging.error(traceback.format_exc())
     
-    def read_sdf(self, md5, file_path):
+    def read_sdf(self, code, md5, file_path):
         logging.info(u'处理md5:%s  文件为:%s 的数据', md5, file_path)
         fp_reader = open(file_path)
         mol = ''
@@ -66,6 +69,8 @@ class DictAgent(DictCompound):
         goods_list = []
         prices = []
         total_count = 0
+        price_total_count = 0
+        # 连续出现多个空行，自动关闭文件
         counter = 0
         while 1:
             line = fp_reader.readline()
@@ -74,25 +79,25 @@ class DictAgent(DictCompound):
                 if counter >= 20:
                     break
             # print line
-            if line.startswith('>  <') or line.startswith('$$$$'):
+            check_line = line.replace('\n', '').replace('\r', '').strip()
+            if self.n_p.match(check_line) or check_line.startswith('$$$$'):
                 if name:
-                    value = value.replace('\n', '').replace('\r', '')
+                    value = value.replace('\n', '').replace('\r', '').strip()
                     # print "Name:%s Value:%s" % (name, value)
                     if name in ['spec_1', 'spec_2', 'spec_3', 'spec_4', 'spec_5']:
                         prices.append(value)
                     # 商品价格表数据
                     goods_dict[name] = value
-                if line.startswith('>  <'):
+                if self.n_p.match(check_line):
                     name = ''
                     value = ''
                     counter = 0
-                    name = line[line.index('<') + 1:line.rindex('>')]
+                    name = line[line.index('<') + 1:line.rindex('>')].strip()
                     continue
             if name:
                 value += line
             else:
                 mol += line
-            check_line = line.replace('\n', '').replace('\r', '')
             
             # 表示有多个一个产品结束
             if check_line == '$$$$':
@@ -106,6 +111,7 @@ class DictAgent(DictCompound):
                                 v_d[key] = goods_dict[gk]
                     result = self.write_dic(v_d, mol)
                     if result['mol_id'] > 0:
+                        goods_list = []
                         for price in prices:
                             goods = {
                                 'mol_id':result['mol_id'],
@@ -117,6 +123,18 @@ class DictAgent(DictCompound):
                                 'price':price
                             }
                             goods_list.append(goods)
+                            price_total_count += 1
+                        if len(goods_list) > 0:
+                            p_result = {}
+                            p_result['file_key'] = md5
+                            p_result['code'] = code
+                            p_result['msg'] = 'success'
+                            p_result['total_count'] = 1
+                            p_result['new_dict_count'] = 0
+                            p_result['prices'] = goods_list
+                            j_result = json.dumps(p_result)
+                            # logging.info(u'生成的JSON数据为:%s', j_result)
+                            self.redis_server.lpush(CK.R_SDF_EXPORT, j_result)
                 except Exception, e:
                     logging.error(u"处理产品时出错:%s", goods_dict)
                     logging.error(traceback.format_exc())
@@ -128,16 +146,7 @@ class DictAgent(DictCompound):
                 prices = []
         fp_reader.close()
         # SDF处理结果
-        p_result = {}
-        p_result['file_key'] = md5
-        p_result['code'] = 0
-        p_result['msg'] = 'success'
-        p_result['total_count'] = total_count
-        p_result['new_dict_count'] = 0
-        p_result['prices'] = goods_list
-        j_result = json.dumps(p_result)
-        logging.info(u'生成的JSON数据为:%s', j_result)
-        self.redis_server.lpush(CK.R_SDF_EXPORT, j_result)
+        logging.info(u'file key:%s 化合物总数:%s 生成价格数据条数:%s', md5, total_count, price_total_count)
     
     def write_dic(self, data_dict, mol):
         result = {'code':0, 'msg':'success', 'mol_id':-1}
@@ -217,14 +226,15 @@ class DictAgent(DictCompound):
     def import_dict_thread(self):
         logging.info(u'启动字典数据写入线程')
         while True:
-            size = self.redis_server.llen(CK.R_DICT_IMPORT)
-            logging.info(u'ImportDict队列中的数据大小为:%s', size)
-            if size == 0:
-                time.sleep(3)
-                continue
             try:
+                size = self.redis_server.llen(CK.R_DICT_IMPORT)
+                logging.info(u'ImportDict队列中的数据大小为:%s', size)
+                if size == 0:
+                    time.sleep(3)
+                    continue
                 self.import_dict()
             except Exception, e:
+                time.sleep(3)
                 logging.error(u"ImportDict队列中的数据处理出错:%s", e)
                 logging.error(traceback.format_exc())
 
@@ -256,13 +266,18 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     da1 = DictAgent()
+    time.sleep(2)
     da2 = DictAgent()
+    time.sleep(2)
     da1.start_agent1()
+    time.sleep(2)
     da2.start_agent2()
+    time.sleep(2)
     '''
+    da1.redis_server.flushall()
     da1.db_dict.execute('truncate table sdf_log;')
-    da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
+    da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "code":"123456", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
+    # da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "code":"123456", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
     da1.read_sdf_task()
-    da2.import_dict()
     '''
     logging.info(u'程序运行完成')

@@ -27,7 +27,7 @@ class DictUtil(DictCompound):
     def write_redis_data(self):
         self.redis_server.flushall()
         self.db_dict.execute('truncate table sdf_log')
-        #self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
+        # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
         self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):
@@ -65,8 +65,22 @@ class DictUtil(DictCompound):
                 
             # break
         
+    def redis_test(self):
+        self.redis_server.set('user', 'matrix')
+        print self.redis_server.get('user')
     
+    def string_test(self):
+        import re
+        p = re.compile(r'>\s*<\w+')
+        match = p.match('><synonym> (1717)\n')
+        if match:
+            print 'Match:' + match.group()
+        else:
+            print u'未匹配'
+        
 if __name__ == '__main__':
     du = DictUtil()
-    du.write_redis_data()
+    # du.write_redis_data()
+    # du.redis_test()
+    du.string_test()
     print u'完成初始化!'

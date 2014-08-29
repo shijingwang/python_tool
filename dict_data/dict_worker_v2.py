@@ -44,14 +44,15 @@ class DictWorkerV2(DictCompound):
     def read_dict_task_thread(self):
         logging.info(u'启动字典创建同步线程')
         while True:
-            size = self.redis_server.llen(CK.R_DICT_CREATE)
-            logging.info(u'DictCreate队列中的数据大小为:%s', size)
-            if size == 0:
-                time.sleep(1)
-                continue
             try:
+                size = self.redis_server.llen(CK.R_DICT_CREATE)
+                logging.info(u'DictCreate队列中的数据大小为:%s', size)
+                if size == 0:
+                    time.sleep(1)
+                    continue
                 self.read_dict_task()
             except Exception, e:
+                time.sleep(1)
                 logging.error(u"DictCreate队列中的数据处理出错,%s", e)
                 logging.error(traceback.format_exc())
     
@@ -281,14 +282,15 @@ class DictWorkerV2(DictCompound):
     def syn_dict_thread(self):
         logging.info(u'启动字典数据同步线程')
         while True:
-            size = self.redis_server.llen(CK.R_DICT_SYN)
-            logging.info(u'DictSyn队列中的数据大小为:%s', size)
-            if size == 0:
-                time.sleep(3)
-                continue
             try:
+                size = self.redis_server.llen(CK.R_DICT_SYN)
+                logging.info(u'DictSyn队列中的数据大小为:%s', size)
+                if size == 0:
+                    time.sleep(3)
+                    continue
                 self.syn_dict()
             except Exception, e:
+                time.sleep(3)
                 logging.error(u"DictSyn队列中的数据处理出错:%s", e)
                 logging.error(traceback.format_exc())
 
@@ -324,10 +326,13 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     worker1 = DictWorkerV2()
+    time.sleep(2)
     worker2 = DictWorkerV2()
+    time.sleep(2)
     worker1.start_worker1()
+    time.sleep(2)
     worker2.start_worker2()
-    
+    time.sleep(2)
     '''
     worker1.read_dict_task()
     

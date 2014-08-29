@@ -31,3 +31,19 @@ alter table search_pic2d rename to search_pic2d_bak;
 alter table search_molstat rename to search_molstat_bak;
 alter table search_molfgb rename to search_molfgb_bak;
 alter table search_molcfp rename to search_molcfp_bak;
+
+alter table search_moldata rename to search_moldata_new;
+alter table search_molstruc rename to search_molstruc_new;
+alter table search_pic2d rename to search_pic2d_new;
+alter table search_molstat rename to search_molstat_new;
+alter table search_molfgb rename to search_molfgb_new;
+alter table search_molcfp rename to search_molcfp_new;
+
+alter table search_moldata_new rename to search_moldata;
+alter table search_molstruc_new rename to search_molstruc;
+alter table search_pic2d_new rename to search_pic2d;
+alter table search_molstat_new rename to search_molstat;
+alter table search_molfgb_new rename to search_molfgb;
+alter table search_molcfp_new rename to search_molcfp;
+
+
