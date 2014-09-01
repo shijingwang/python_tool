@@ -26,9 +26,9 @@ class DictUtil(DictCompound):
     
     def write_redis_data(self):
         self.redis_server.flushall()
-        self.db_dict.execute('truncate table sdf_log')
-        # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
-        self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
+        self.db_dict.execute('truncate table log_sdf')
+        self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
+        # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):
         sql = 'select * from dic_source_data'
@@ -56,6 +56,7 @@ class DictUtil(DictCompound):
                 # logging.info(u'执行生成mol命令:%s', c)
                 result = os.popen(c).read()
                 data_dict['mol'] = result
+                data_dict['source'] = 'spider'
                 dict_create_json = json.dumps(data_dict)
                 # lpush 优先级比较低
                 self.redis_server.lpush(CK.R_DICT_CREATE, dict_create_json)
@@ -80,7 +81,7 @@ class DictUtil(DictCompound):
         
 if __name__ == '__main__':
     du = DictUtil()
-    # du.write_redis_data()
+    du.write_redis_data()
     # du.redis_test()
-    du.string_test()
+    # du.string_test()
     print u'完成初始化!'

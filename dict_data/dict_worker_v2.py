@@ -90,20 +90,27 @@ class DictWorkerV2(DictCompound):
                 continue
             params.append(v)
             # print "%s : %s" % ((i + 1), v)
-
         if check_mol_id < 0 :
+            # 用户添加的数据
+            if data_dict.get('source') == 'user':
+                params.append(1)
+                params.append(0)
+            else:
+                params.append(0)
+                params.append(1)
             sql = '''INSERT INTO search_moldata (mol_id, mol_name, en_synonyms, zh_synonyms, name_cn, cas_no, 
                                                     formula,mol_weight,exact_mass,smiles,inchi,
                                                     num_atoms,num_bonds,num_residues,sequence,
-                                                    num_rings,logp,psa,mr,goods_count) VALUES (
+                                                    num_rings,logp,psa,mr,goods_count,is_user_add,is_audit) VALUES (
                                                     %s,%s,%s,%s,%s,%s,
                                                     %s,%s,%s,%s,%s,
                                                     %s,%s,%s,%s,
-                                                    %s,%s,%s,%s,0
+                                                    %s,%s,%s,%s,0,%s,%s
                                                     )'''
             logging.info(u"写入新数据,mol_id:%s!", mol_id)
             # logging.info(sql)
             self.db_dict.insert(sql, *params)
+        # 防止数据更新, 带来的冲击与影响
         else:
             sql = '''update search_moldata  set formula=%s,mol_weight=%s,exact_mass=%s,smiles=%s,inchi=%s,
                                                     num_atoms=%s,num_bonds=%s,num_residues=%s,sequence=%s,

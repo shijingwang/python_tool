@@ -110,12 +110,18 @@ class DictAgent(DictCompound):
                             if gk in dict_conf.SDF_KEY[key]:
                                 v_d[key] = goods_dict[gk]
                     result = self.write_dic(v_d, mol)
+                    goods_list = []
+                    err_msg = ''
                     if result['mol_id'] > 0:
-                        goods_list = []
                         for price in prices:
+                            if not price:
+                                err_msg += u'CAS号:%s 存在无价格的规格  ' % (v_d.get('cas_no', ''))
+                                continue
                             goods = {
                                 'mol_id':result['mol_id'],
-                                'cas_no':v_d['cas_no'],
+                                'cas_no':v_d.get('cas_no', ''),
+                                'product_name': v_d.get('name_en', ''),
+                                'product_name_cn': v_d.get('name_cn', ''),
                                 'purity':goods_dict.get('PURITY', ''),
                                 'lead_time':goods_dict.get('LEAD_TIME', ''),
                                 'stock':goods_dict.get('STOCK', ''),
@@ -124,17 +130,25 @@ class DictAgent(DictCompound):
                             }
                             goods_list.append(goods)
                             price_total_count += 1
-                        if len(goods_list) > 0:
-                            p_result = {}
-                            p_result['file_key'] = md5
-                            p_result['code'] = code
-                            p_result['msg'] = 'success'
-                            p_result['total_count'] = 1
-                            p_result['new_dict_count'] = 0
-                            p_result['prices'] = goods_list
-                            j_result = json.dumps(p_result)
-                            # logging.info(u'生成的JSON数据为:%s', j_result)
-                            self.redis_server.lpush(CK.R_SDF_EXPORT, j_result)
+                        if len(goods_list) == 0:
+                            err_msg = u'CAS号:%s %s' % (v_d.get('cas_no', ''), u'未指定价格')
+                        if len(err_msg) == 0:
+                            err_msg = 'success'
+                    else:
+                        err_msg = u'CAS号:%s %s' % (v_d.get('cas_no', ''), result['msg'])
+                    if not err_msg == 'success':
+                        logging.info(err_msg)
+                    p_result = {}
+                    p_result['file_key'] = md5
+                    p_result['code'] = code
+                    p_result['msg'] = err_msg
+                    p_result['finish'] = 0
+                    p_result['total_count'] = 1
+                    p_result['new_dict_count'] = 0
+                    p_result['prices'] = goods_list
+                    j_result = json.dumps(p_result)
+                    # logging.info(u'生成的JSON数据为:%s', j_result)
+                    self.redis_server.lpush(CK.R_SDF_EXPORT, j_result)
                 except Exception, e:
                     logging.error(u"处理产品时出错:%s", goods_dict)
                     logging.error(traceback.format_exc())
@@ -145,6 +159,17 @@ class DictAgent(DictCompound):
                 goods_dict = {}
                 prices = []
         fp_reader.close()
+        # 推送一条处理完的结果
+        p_result = {}
+        p_result['file_key'] = md5
+        p_result['code'] = code
+        p_result['msg'] = 'success'
+        p_result['finish'] = 1
+        p_result['total_count'] = 1
+        p_result['new_dict_count'] = 0
+        p_result['prices'] = []
+        j_result = json.dumps(p_result)
+        self.redis_server.lpush(CK.R_SDF_EXPORT, j_result)
         # SDF处理结果
         logging.info(u'file key:%s 化合物总数:%s 生成价格数据条数:%s', md5, total_count, price_total_count)
     
@@ -152,13 +177,17 @@ class DictAgent(DictCompound):
         result = {'code':0, 'msg':'success', 'mol_id':-1}
         logging.info(u"处理属性:%s数据", data_dict)
         if not self.cu.cas_check(data_dict['cas_no']):
-            result['code'] = -1;result['msg'] = u'相应的cas号数据错误'
+            result['code'] = -1;result['msg'] = u'CAS号不符合规则'
             return result
         self.fu.delete_file(self.tmp_mol1)
         mol1_writer = open(self.tmp_mol1, 'w')
         mol1_writer.write(mol)
         mol1_writer.close()
-        check_mol_id = self.check_match(data_dict['cas_no'], mol)
+        try:
+            check_mol_id = self.check_match(data_dict['cas_no'], mol)
+        except Exception, e:
+            result['code'] = -1; result['msg'] = str(e)
+            return result
         if check_mol_id > 0:
             result['mol_id'] = check_mol_id
             return result
@@ -172,6 +201,7 @@ class DictAgent(DictCompound):
         if not data_dict.get('name_cn_alias'):
             data_dict['name_cn_alias'] = ''
         data_dict['mol'] = mol
+        data_dict['source'] = 'user'
         dict_create_json = json.dumps(data_dict)
         # 推送任务, rpush优先级比较高,rpop
         self.redis_server.rpush(CK.R_DICT_CREATE, dict_create_json)
@@ -189,6 +219,8 @@ class DictAgent(DictCompound):
             if counter >= 6:
                 break
             time.sleep(2)
+        if result['mol_id'] < 0:
+            result['msg'] = u'数据写入字典失败'
         return result
     
     def import_dict(self):
@@ -266,6 +298,7 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     da1 = DictAgent()
+    
     time.sleep(2)
     da2 = DictAgent()
     time.sleep(2)
@@ -275,8 +308,8 @@ if __name__ == '__main__':
     time.sleep(2)
     '''
     da1.redis_server.flushall()
-    da1.db_dict.execute('truncate table sdf_log;')
-    da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "code":"123456", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
+    da1.db_dict.execute('truncate table log_sdf;')
+    da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "code":"123456", "file_path":"/home/kulen/Documents/xili_data/RMB_test.sdf"}')
     # da1.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d", "code":"123456", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
     da1.read_sdf_task()
     '''

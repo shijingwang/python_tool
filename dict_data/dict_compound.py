@@ -34,10 +34,11 @@ class DictCompound(object):
         return mol_id
     
     def check_match(self, cas_no, mol):
-        sql = 'select * from search_moldata where cas_no=%s order by mol_id asc'
-        rs = self.db_dict.query(sql, cas_no)
-        for r in rs:
-            return r['mol_id']
+        if self.cu.cas_check(cas_no):
+            sql = 'select * from search_moldata where cas_no=%s order by mol_id asc'
+            rs = self.db_dict.query(sql, cas_no)
+            for r in rs:
+                return r['mol_id']
         c = "echo \"%s\" | checkmol -axH -" % mol
         # logging.info(c)
         result = os.popen(c).read()
@@ -93,7 +94,7 @@ class DictCompound(object):
     
     def read_sql(self, redis_msg, mol_id):
         sql = 'select * from search_moldata where mol_id=%s'
-        columns = ['mol_id', 'mol_name', 'en_synonyms', 'zh_synonyms', 'name_cn', 'cas_no', 'formula', 'mol_weight', 'exact_mass', 'smiles', 'inchi', 'num_atoms', 'num_bonds', 'num_residues', 'sequence', 'num_rings', 'logp', 'psa', 'mr']
+        columns = ['mol_id', 'mol_name', 'en_synonyms', 'zh_synonyms', 'name_cn', 'cas_no', 'formula', 'mol_weight', 'exact_mass', 'smiles', 'inchi', 'num_atoms', 'num_bonds', 'num_residues', 'sequence', 'num_rings', 'logp', 'psa', 'mr', 'is_user_add', 'is_audit']
         rs = self.db_dict.query(sql, mol_id)
         for r in rs:
             for column in columns:
