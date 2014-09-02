@@ -1,0 +1,36 @@
+Queue队列的统一操作方式为: lpush rpop
+sdf 文档接入接口
+Redis Queue:sdf_import_queue
+{
+	'file_key':'文件md5sum',
+	'file_path':'/home/www/uploadfile/xili.sdf'
+}
+Redis Queue:sdf_export_queue
+sdf 文档回馈数据
+{
+	'file_key':'54321ad23f232fs343',
+	'code':'0',
+	'msg':'success',
+	'total_count':5,
+	'new_dict_count':0,
+	'prices':[
+		{
+			'mol_id':'1',
+			'cas_no':'12-1-1',
+			'purity':'96%',
+			'lead_time':'3天',
+			'stock':'500kg',
+			'capacity':'1t',
+			'price':'30'
+		},
+		{
+			'mol_id':'2',
+			'cas_no':'12-2-1',
+			'purity':'98%',
+			'lead_time':'5天',
+			'stock':'5kg',
+			'capacity':'100t',
+			'price':'50'
+		}
+	]
+}

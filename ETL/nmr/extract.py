@@ -53,7 +53,7 @@ class Extract(object):
         if not os.path.exists(check_dir):
             os.makedirs(check_dir)
         fileName = source
-        logoName = "F:/logo/mark_logov3/logov3_60.png"
+        logoName = "D:/logo/mark_logov3/logov3_60.png"
         logging.info(u'图片打水印:%s', fileName)
         im = Image.open(fileName)
         mark = Image.open(logoName)
@@ -134,6 +134,7 @@ class Extract(object):
     def extract_nmrchem_data(self):
         days = ["2014-07-17", "2014-07-18", "2014-07-19", "2014-07-20", "2014-07-21"]
         days = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
+        days = ["2014-08-07", "2014-08-08", "2014-08-09", "2014-08-10", "2014-08-11", "2014-08-12", "2014-08-13", "2014-08-14", "2014-08-15", "2014-08-16", "2014-08-17", "2014-08-18"]
         for day in days:
             self.file_list = []
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_T + day)
@@ -142,6 +143,7 @@ class Extract(object):
     def mark_nmrchem_data(self):
         days = ["2014-07-19", "2014-07-20", "2014-07-21"]
         days = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
+        days = ["2014-08-07", "2014-08-08", "2014-08-09", "2014-08-10", "2014-08-11", "2014-08-12", "2014-08-13", "2014-08-14", "2014-08-15", "2014-08-16", "2014-08-17", "2014-08-18"]
         for day in days:
             self.file_list = []
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_S + day)

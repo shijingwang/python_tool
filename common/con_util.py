@@ -17,4 +17,4 @@ class ConUtil(object):
 
     @staticmethod
     def connect_redis(configs):
-        return redis.Redis(configs["host"], configs["port"])
+        return redis.Redis(host=configs.get("host", "127.0.0.1"), port=configs.get('port', 6379), password=configs.get('password', None))
