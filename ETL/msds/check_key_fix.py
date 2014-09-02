@@ -39,6 +39,37 @@ class CheckKeyFix(object):
             except Exception, e:
                 logging.info(traceback.format_exc())
         return 1
+    
+    def fix_repeat_data(self):
+        sql = 'SELECT check_key,size,count(*) as number FROM `file_info` group by check_key,size having count(*)>1 order by number desc';
+        logging.info(u'执行的sql语句:%s', sql)
+        fis = self.db_spider_data.query(sql)
+        for fi in fis:
+            sql = "select * from file_info where check_key='%s' and size='%s' order by id asc"
+            sql = sql % (fi['check_key'], fi['size'])
+            logging.info(u'执行的sql语句:%s', sql)
+            fis2 = self.db_spider_data.query(sql)
+            counter = 0
+            fix_storage_key = ''
+            for fi2 in fis2:
+                counter += 1
+                if counter == 1:
+                    fix_storage_key = fi2['_key']
+                    continue;
+                try:
+                    sql = "update file_download set storage_key='%s' where storage_key='%s'"
+                    sql = sql % (fix_storage_key, fi2['_key'])
+                    logging.info(u'执行的sql语句:%s', sql)
+                    self.db_spider_data.execute(sql)
+                    sql = "delete from file_info where _key='%s'"
+                    sql = sql % (fi2['_key'])
+                    logging.info(u'执行的sql语句:%s', sql)
+                    self.db_spider_data.execute(sql)
+                    fp = settings.MSDS_FILE_PATH + fi2['path']
+                    logging.info(fp)
+                    os.remove(fp)
+                except Exception, e:
+                    logging.error(traceback.format_exc())
 
 if __name__ == '__main__':
 
@@ -55,5 +86,5 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     ed = CheckKeyFix()
-    ed.check_key_fix()
+    ed.fix_repeat_data()
     logging.info(u'程序运行完成')
