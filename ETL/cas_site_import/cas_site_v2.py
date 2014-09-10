@@ -19,10 +19,18 @@ class CasSite(object):
     
     def write_cas_data(self):
         logging.info("开始读取")
-        f = open('/home/kulen/Documents/网址汇总.csv', 'rb')
+        f = open('/home/kulen/Downloads/official_cas.csv', 'rb')
         reader = csv.reader(f)
         for row in reader:
-            url = urlparse.urlparse(row[2].strip())
+            url_tmp = row[2].strip()
+            if not url_tmp:
+                continue
+            url_tmp = url_tmp.lower()
+            if url_tmp.startswith('www'):
+                url_tmp = 'http://' + url_tmp
+            if not url_tmp.startswith('http://'):
+                continue
+            url = urlparse.urlparse(url_tmp)
             if not url.hostname:
                 continue
             if url.hostname == 'http':
@@ -39,11 +47,11 @@ class CasSite(object):
             sql = '''insert into cas_extract_site (v_id,name,domain,url,status,create_time,last_update_time)
                 values (%s,%s,%s,%s,%s,now(),now())
             '''
-            self.db_spider_data.insert(sql, row[0], row[1], url.hostname, row[2], 0)
+            self.db_spider_data.insert(sql, row[0], row[1], url.hostname, url_tmp, 0)
         logging.info("完成数据读取")
     
     def sql(self):
-        "insert into spider.spider_site (id,name,domain,processor,all_spider,speed,once_num,seed_url) select id,name,domain,'CasExtractSpiderV3',1,3000,8,url from spider_data.cas_extract_site where id>12645 on duplicate key update last_update_time=now()"
+        "insert into spider.spider_site (id,name,domain,processor,all_spider,speed,once_num,seed_url) select id,name,domain,'CasExtractSpiderV3',1,3000,8,url from spider_data.cas_extract_site where id>13649 on duplicate key update last_update_time=now()"
         # id>12639
 
 if __name__ == '__main__':
