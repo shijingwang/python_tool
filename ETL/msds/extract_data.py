@@ -10,6 +10,7 @@ except ImportError:
     fp = os.path.abspath(__file__)
     sys.path.append(fp[0:fp.rfind('python_tool') + 11])
 from common.con_util import ConUtil
+from common.cas_util import CasUtil
 import settings
 from html_format import HtmlFormat
 
@@ -26,6 +27,7 @@ class ExtractData(object):
                     }
         self.db_spider_data = ConUtil.connect_mysql(settings.MYSQL_SPIDER_DATA)
         self.db_molbase = ConUtil.connect_mysql(settings.MYSQL_MOLBASE)
+        self.cu = CasUtil()
         self.html_fomrat = HtmlFormat()
         pass
     
@@ -61,6 +63,7 @@ class ExtractData(object):
         ss = set()
         # source set
         source_set = set()
+        # update source key
         for d in ddata:
             ss.add(str(d['storage_key']))
             if d['source_key'] != None:
@@ -84,8 +87,11 @@ class ExtractData(object):
         data = self.db_spider_data.query(sql)
         logging.info(u"查询出的文件数量为:%s", len(data))
         for d in ddata:
-            logging.info(u"处理编号:%s MSDS文档", d['id'])
+            logging.info(u"处理编号:%s site_id:%s cas:%s MSDS文档", d['id'], d['site_id'], d['name3'])
             try:
+                if not self.cu.cas_check(d['name3']):
+                    logging.info(u'编号:%s CAS号:[%s] 不符合规范', d['id'], d['name3'])
+                    raise Exception('4', u'cas号不符合规范')
                 file_type = int(d['site_id'])
                 cas = d['name3'].strip()
                 language = d['language']
@@ -97,24 +103,33 @@ class ExtractData(object):
                         path = d1['path']
                         break
                 if path == 0:
-                    continue
+                    raise Exception('4', u'未发现数据存储路径')
                 for d2 in cp_data:
                     if source_key == d2['_key']:
                         url = d2['url']
                         break
+                # 对于量特别的大的数据，需要不再处理
+                sql = 'select * from file_download where status=1 and site_id=%s and language=%s and name3=%s'
+                check_set = self.db_spider_data.query(sql, file_type, language, cas)
+                if len(check_set) > 4:
+                    raise Exception('4', u'源数据记录过多')
+                sql = 'select * from search_msdsv2 where cas=%s and language=%s and source=%s'
+                check_set = self.db_molbase.query(sql, cas, language, file_type)
+                if len(check_set) > 0:
+                    raise Exception('4', u'数据已经写入数据库')
                 if file_type == 12629:
                     if language == 'English':
                         content = self.html_fomrat.en_format(settings.MSDS_FILE_PATH + path)
                     else:
                         content = self.html_fomrat.cn_format(settings.MSDS_FILE_PATH + path)
-                    sql = "insert into search_msdsv2 (cas,language,check_key,content) values (%s,%s,%s,%s)"
+                    sql = "insert into search_msdsv2 (cas,language,check_key,source,content) values (%s,%s,%s,%s,%s)"
                     # logging.info(sql)
                     # self.db_molbase.execute(sql)
-                    self.db_molbase.insertmany(sql, [(cas, language, d['_key'], content)])
+                    self.db_molbase.insertmany(sql, [(cas, language, d['_key'], file_type, content)])
                 else:
                     if url == None or url == '':
                         raise Exception('5', u'没有URL')
-                    sql = "insert into search_msdsv2 (cas,language,check_key,link_name,link) values ('%s','%s','%s','%s','%s')" % (cas, language, d['_key'], self.company_type[file_type], url)
+                    sql = "insert into search_msdsv2 (cas,language,check_key,source,link_name,link) values ('%s','%s','%s','%s','%s','%s')" % (cas, language, d['_key'], file_type, self.company_type[file_type], url)
                     # logging.info(sql)
                     self.db_molbase.execute(sql)
             except Exception, e:
@@ -127,7 +142,9 @@ class ExtractData(object):
         return 1
 
 if __name__ == '__main__':
-
+    # 一个平台的文档，只存在中英文两版，如果有多余的数据，统统删掉
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/msds_extract.log", help="NSQ topic")
     define("func_name", default="spider_apple")
