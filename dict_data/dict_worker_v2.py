@@ -73,12 +73,20 @@ class DictWorkerV2(DictCompound):
             return
         else:
             mol_id = self.get_write_molid()
-        
+        # 填充没有字典的数据
+        if not data_dict.get('name_en'):
+            data_dict['name_en'] = ''
+        if not data_dict.get('name_en_alias'):
+            data_dict['name_en_alias'] = ''
+        if not data_dict.get('name_cn'):
+            data_dict['name_cn'] = ''
+        if not data_dict.get('name_cn_alias'):
+            data_dict['name_cn_alias'] = ''
         params = [mol_id]
         params.append(data_dict['name_en'])
         params.append(data_dict['name_en_alias'])
-        params.append(data_dict['name_cn'])
         params.append(data_dict['name_cn_alias'])
+        params.append(data_dict['name_cn'])
         params.append(data_dict['cas_no'])
         c = "obprop %s 2>/dev/null | awk -F\"\\t\" '{print $1}' | cut -c 17- | head -16 | tail -15"
         c = c % (self.tmp_mol1)

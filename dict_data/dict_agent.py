@@ -61,6 +61,24 @@ class DictAgent(DictCompound):
     
     def read_sdf(self, code, md5, file_path):
         logging.info(u'处理md5:%s  文件为:%s 的数据', md5, file_path)
+        
+        sql = 'select * from sdf_mapping'
+        rs = self.db_dict.query(sql)
+        name_mapping = {}
+        for r in rs:
+            alias_names = []
+            alias_names.append(r['standard_name'].lower())
+            if not r['alias_name']:
+                r['alias_name'] = ''
+            r['alias_name'] = r['alias_name'].strip()
+            if len(r['alias_name']) > 0:
+                _names = r['alias_name'].split('|')
+                for name in _names:
+                    if len(name.strip()) == 0:
+                        continue
+                    alias_names.append(name.strip().lower())
+            name_mapping[r['standard_name'].lower()] = alias_names
+        logging.info(u'处理SDF字段映射名是:%s', name_mapping)
         fp_reader = open(file_path)
         mol = ''
         name = ''
@@ -84,10 +102,7 @@ class DictAgent(DictCompound):
                 if name:
                     value = value.replace('\n', '').replace('\r', '').strip()
                     # print "Name:%s Value:%s" % (name, value)
-                    if name in ['spec_1', 'spec_2', 'spec_3', 'spec_4', 'spec_5']:
-                        prices.append(value)
-                    # 商品价格表数据
-                    goods_dict[name] = value
+                    goods_dict[name.lower()] = value
                 if self.n_p.match(check_line):
                     name = ''
                     value = ''
@@ -103,30 +118,42 @@ class DictAgent(DictCompound):
             if check_line == '$$$$':
                 total_count += 1
                 try:
+                    # 完成字段数据的映射关系
                     v_d = {}
-                    for key in dict_conf.SDF_KEY:
+                    # name_key nk
+                    for nk in name_mapping:
                         # goods_key gk
                         for gk in goods_dict.keys():
-                            if gk in dict_conf.SDF_KEY[key]:
-                                v_d[key] = goods_dict[gk]
+                            if gk in name_mapping[nk]:
+                                v_d[nk] = goods_dict[gk]
+                    # 内部逻辑处理使用的逻辑
+                    v_d['name_en'] = v_d.get('product_name', '')
+                    v_d['name_cn'] = v_d.get('product_name_cn', '')
+                    v_d['cas_no'] = v_d.get('cas_number', '')
                     result = self.write_dic(v_d, mol)
                     goods_list = []
                     err_msg = ''
                     if result['mol_id'] > 0:
+                        prices = []
+                        # price_key pk
+                        for pk in v_d:
+                            if pk in ['spec_1', 'spec_2', 'spec_3', 'spec_4', 'spec_5']:
+                                prices.append(v_d.get(pk))
                         for price in prices:
                             if not price:
                                 err_msg += u'CAS号:%s 存在无价格的规格  ' % (v_d.get('cas_no', ''))
                                 continue
                             goods = {
                                 'mol_id':result['mol_id'],
-                                'cas_no':v_d.get('cas_no', ''),
+                                'cas_no':v_d.get('cas_number', ''),
                                 'product_name': v_d.get('name_en', ''),
                                 'product_name_cn': v_d.get('name_cn', ''),
-                                'purity':goods_dict.get('PURITY', ''),
-                                'lead_time':goods_dict.get('LEAD_TIME', ''),
-                                'stock':goods_dict.get('STOCK', ''),
-                                'capacity':goods_dict.get('CAPACITY', ''),
-                                'price':price
+                                'purity':v_d.get('purity', ''),
+                                'lead_time':v_d.get('lead_time', ''),
+                                'stock':v_d.get('stock', ''),
+                                'capacity':v_d.get('capacity', ''),
+                                'price':price,
+                                'sku':v_d.get('sku', '')
                             }
                             goods_list.append(goods)
                             price_total_count += 1
@@ -157,7 +184,6 @@ class DictAgent(DictCompound):
                 value = ''
                 counter = 0
                 goods_dict = {}
-                prices = []
         fp_reader.close()
         # 推送一条处理完的结果
         p_result = {}

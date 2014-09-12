@@ -4,9 +4,12 @@ import re
 class CasUtil(object):
     
     def __init__(self):
-        self.cas_p = re.compile(r'([0-9]{2,7})[-—]{1}([0-9]{2})[-—]{1}([0-9]{1})')
+        self.cas_p = re.compile(r'^([0-9]{2,7})[-—]{1}([0-9]{2})[-—]{1}([0-9]{1})$')
     
-    def cas_check(self, cas):
+    def cas_check(self, cas):    
+        if not cas:
+            return False
+        cas = cas.strip().replace('　', '')
         match = self.cas_p.match(cas)
         if not match:
             return False
@@ -27,8 +30,9 @@ class CasUtil(object):
 if __name__ == '__main__':
     
     cu = CasUtil()
-    print cu.cas_check('')
+    print cu.cas_check('0-01-1')
     print cu.cas_check('67214-05-5')
     print cu.cas_check('32780-06-6')
     print cu.cas_check('32780-06-7')
-    print cu.cas_check('64-18-6 (Parent)')
+    print cu.cas_check('64-18-6 (parent)')
+    print cu.cas_check('79902-63-9　')
