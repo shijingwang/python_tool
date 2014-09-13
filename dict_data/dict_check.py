@@ -11,12 +11,24 @@ except ImportError:
     sys.path.append(fp[0:fp.rfind('python_tool') + 11])
 
 from common.con_util import ConUtil
+from common.cas_util import CasUtil
 import dict_conf
 
 class DictCheck(object):
     
     def __init__(self):
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_WORKER)
+        self.cu = CasUtil()
+    
+    def all_cas_check(self):
+        sql = 'select mol_id,cas_no from search_moldata'
+        rs = self.db_dict.query(sql)
+        for r in rs:
+            if not r['cas_no']:
+                continue
+            if not self.cu.cas_check(r['cas_no']):
+                logging.warn(u'mol_id:[%s] cas_no:[%s] 校验不通过', r['mol_id'], r['cas_no'])
+                continue
 
     def data_check(self):
         data_set = self.get_data_set('search_moldata')
@@ -50,7 +62,8 @@ class DictCheck(object):
         return dataset
 
 if __name__ == '__main__':
-
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
     define("logfile", default="/tmp/dict_check.log", help="NSQ topic")
     define("func_name", default="import_table_data")
@@ -65,5 +78,6 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     dictCheck = DictCheck()
-    dictCheck.data_check()
+    #dictCheck.data_check()
+    dictCheck.all_cas_check()
     logging.info(u'程序运行完成')

@@ -21,19 +21,20 @@ class DictUtil(DictCompound):
     
     def __init__(self):
         self.redis_server = ConUtil.connect_redis(dict_conf.REDIS_SERVER)
-        self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_AGENT)
+        # self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_AGENT)
         self.db_dict_source = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_SOURCE)
         self.cu = CasUtil()
     
     def write_redis_data(self):
         self.redis_server.flushall()
-        self.db_dict.execute('truncate table log_sdf')
-        #self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
+        # self.db_dict.execute('truncate table log_sdf')
+        # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
         self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):
         sql = 'select * from dic_source_data'
         rs = self.db_dict_source.query(sql)
+        logging.info(u"导入数据量为:%s", len(rs))
         for r in rs:
             try:
                 # logging.info(u'处理id:%s cas_no:%s的记录', r['id'], r['cas_no'])
@@ -91,8 +92,24 @@ class DictUtil(DictCompound):
             print u'未匹配'
         
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    
+    logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
+    define("logfile", default="/tmp/dict_util.log", help="NSQ topic")
+    define("func_name", default="import_table_data")
+    options.parse_command_line()
+    logfile = options.logfile
+    fmt = '%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s'
+    handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=100 * 1024 * 1024, backupCount=10)  # 实例化handler
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt)  # 实例化formatter
+    handler.setFormatter(formatter)  # 为handler添加formatter
+    logging.getLogger('').addHandler(handler)
+    logging.info(u'写入的日志文件为:%s', logfile)
+    
     du = DictUtil()
-    # du.import_table_data()
-    du.write_redis_data()
+    du.import_table_data()
+    # du.write_redis_data()
     # du.string_test()
-    print u'完成初始化!'
+    logging.info(u'完成初始化!');
