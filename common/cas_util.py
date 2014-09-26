@@ -14,6 +14,7 @@ class CasUtil(object):
         if not match:
             return False
         cas1 = match.group(1)
+        cas1 = str(int(cas1))
         cas2 = match.group(2)
         cas3 = int(match.group(3))
         check_cas = cas1 + cas2

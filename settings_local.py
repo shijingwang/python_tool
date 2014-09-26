@@ -9,7 +9,7 @@ MYSQL_MOLBASE = {"host": "127.0.0.1",
                "port": "3306",
                "database": "molbase",
                "user": "root",
-               "password": ""
+               "password": "rainzgq"
                }
 MYSQL_SPIDER_DATA = {"host": "127.0.0.1",
                "port": "3306",
@@ -17,15 +17,12 @@ MYSQL_SPIDER_DATA = {"host": "127.0.0.1",
                "user": "root",
                "password": "rainzgq"
                }
-<<<<<<< HEAD
 MYSQL_SPIDER = {"host": "127.0.0.1",
                "port": "3306",
                "database": "spider",
                "user": "root",
                "password": "rainzgq"
                }
-=======
->>>>>>> branch 'master' of https://github.com/shijingwang/python_tool.git
 NMR_CHEM_FILE_PATH_S = "D:/nmrpic/"
 NMR_DB_FILE_PATH_S = "/home/kulen/NmrMsdsETL/nmrdb_origin/"
 NMR_CHEM_FILE_PATH_T = "D:/nmrpic_mark/"
