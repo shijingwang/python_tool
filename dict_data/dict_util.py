@@ -38,10 +38,7 @@ class DictUtil(DictCompound):
         for r in rs:
             try:
                 # logging.info(u'处理id:%s cas_no:%s的记录', r['id'], r['cas_no'])
-                if not r['cas_no']:
-                    logging.info(u'id:%s 记录无cas号', r['id'])
-                    continue
-                if not self.cu.cas_check(r['cas_no']):
+                if r['cas_no'] and not self.cu.cas_check(r['cas_no']):
                     logging.info(u'CAS号:%s 校验失败', r['cas_no'])
                     continue
                 # data_type 1--表示有smile和inchi数据  2--表示有mol数据，无smile inchi数据
@@ -62,13 +59,20 @@ class DictUtil(DictCompound):
             # break
     
     def extract_inchi_data(self, r):
+        if r['smiles'] and not r['inchi']:
+            c = 'echo "%s" | babel -ismi -oinchi'
+            c = c % r['smiles']
+            result = os.popen(c).read().replace('\r', '').replace('\n', '').strip()
+            if not result:
+                raise Exception(555, '无法由InChI生成smile')
+            r['inchi'] = result
         if not r['inchi'].startswith('InChI='):
             r['inchi'] = 'InChI=' + r['inchi']
         c = 'echo "%s" | babel -iinchi -ocan'
         c = c % r['inchi']
         result = os.popen(c).read().replace('\r', '').replace('\n', '').strip()
         if not result:
-            raise Exception(555, 'InChi格式不正确')
+            raise Exception(555, 'InChI格式不正确')
         c = 'echo "%s" | babel -iinchi -omol --gen2d'
         c = c % r['inchi']
         # logging.info(u'执行生成mol命令:%s', c)

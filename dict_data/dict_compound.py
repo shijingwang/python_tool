@@ -34,7 +34,7 @@ class DictCompound(object):
         return mol_id
     
     def check_match(self, cas_no, mol):
-        if self.cu.cas_check(cas_no):
+        if cas_no and self.cu.cas_check(cas_no):
             sql = 'select * from search_moldata where cas_no=%s order by mol_id asc'
             rs = self.db_dict.query(sql, cas_no)
             for r in rs:

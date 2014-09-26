@@ -58,7 +58,7 @@ class DictWorkerV2(DictCompound):
     
     def write_dic(self, data_dict):
         logging.info(u"处理cas_no:%s name:%s", data_dict['cas_no'], data_dict.get('name_en', ''))
-        if not self.cu.cas_check(data_dict['cas_no']):
+        if data_dict['cas_no'] and not self.cu.cas_check(data_dict['cas_no']):
             logging.warn(u'CAS号校验未通过!')
             return
 
