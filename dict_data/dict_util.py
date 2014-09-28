@@ -28,11 +28,11 @@ class DictUtil(DictCompound):
     def write_redis_data(self):
         self.redis_server.flushall()
         # self.db_dict.execute('truncate table log_sdf')
-        # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
-        self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
+        self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/xili_3_1.sdf"}')
+        # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):
-        sql = 'select * from dic_source_data'
+        sql = 'select * from dic_source_data where has_dispose=0 order by id asc'
         rs = self.db_dict_source.query(sql)
         logging.info(u"导入数据量为:%s", len(rs))
         for r in rs:
@@ -48,14 +48,23 @@ class DictUtil(DictCompound):
                     self.extract_mol_data(r)
                 data_dict = {'name_en':r['name_en'], 'name_en_alias':r['name_en_alias'], 'name_cn':r['name_cn'], 'name_cn_alias':r['name_cn_alias'], 'cas_no':r['cas_no']}
                 data_dict['mol'] = r['mol']
-                data_dict['source'] = 'spider'
+                # 确定数据更新方式　1--对数据进行写入 2--对字典数据进行修正
+                if r['write_type'] == 1:
+                    data_dict['source'] = 'spider'
+                    data_dict['wtype'] = 'insert'
+                    data_dict['mol_id'] = ''
+                else:
+                    data_dict['source'] = 'fix'
+                    data_dict['wtype'] = 'update'
+                    data_dict['mol_id'] = r['mol_id']
                 dict_create_json = json.dumps(data_dict)
                 # lpush 优先级比较低
                 self.redis_server.lpush(CK.R_DICT_CREATE, dict_create_json)
             except Exception, e:
                 logging.error(u"处理cas:%s 产品:%s ErrMsg:%s", r['cas_no'], r['name_en'], e)
                 logging.error(traceback.format_exc())
-                
+            sql = 'update dic_source_data set has_dispose=1 where id=%s'
+            self.db_dict_source.execute(sql, r['id'])
             # break
     
     def extract_inchi_data(self, r):
@@ -113,7 +122,7 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     du = DictUtil()
-    du.import_table_data()
-    # du.write_redis_data()
+    # du.import_table_data()
+    du.write_redis_data()
     # du.string_test()
     logging.info(u'完成初始化!');

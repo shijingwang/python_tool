@@ -31,7 +31,6 @@ class DictAgent(DictCompound):
         if not sdf_text:
             return
         logging.info(u'从redis接收数据:%s', sdf_text)
-        self.db_dict.reconnect()
         sdf_json = json.loads(sdf_text)
         md5 = sdf_json['file_key']
         file_path = sdf_json['file_path']
@@ -202,7 +201,8 @@ class DictAgent(DictCompound):
     def write_dic(self, data_dict, mol):
         result = {'code':0, 'msg':'success', 'mol_id':-1}
         logging.info(u"处理属性:%s数据", data_dict)
-        if not self.cu.cas_check(data_dict['cas_no']):
+        # 允许cas号为空的数据
+        if data_dict['cas_no'] and not self.cu.cas_check(data_dict['cas_no']):
             result['code'] = -1;result['msg'] = u'CAS号不符合规则'
             return result
         self.fu.delete_file(self.tmp_mol1)
@@ -228,6 +228,7 @@ class DictAgent(DictCompound):
             data_dict['name_cn_alias'] = ''
         data_dict['mol'] = mol
         data_dict['source'] = 'user'
+        data_dict['wtype'] = 'insert'
         dict_create_json = json.dumps(data_dict)
         # 推送任务, rpush优先级比较高,rpop
         self.redis_server.rpush(CK.R_DICT_CREATE, dict_create_json)
@@ -254,7 +255,6 @@ class DictAgent(DictCompound):
         if not dict_v:
             return
         # logging.info(u'接收到的字黄写入数据为:%s', dict_v)
-        self.db_dict.reconnect()
         dict_j = json.loads(dict_v)
         mol_id = dict_j['mol_id']
         sql = 'select * from search_moldata where mol_id=%s'
@@ -272,6 +272,12 @@ class DictAgent(DictCompound):
                     self.redis_server.lpush(CK.R_DICT_SYN, redis_msg)
                     logging.warn(u'mol_id:%s 是用户新增记录,需要将数据同步至离线数据库', mol_id)
             return
+        
+        # 对字典的数据进行更新, 首先删除其余5张表无用的数据
+        if len(rs) > 0 and dict_j['search_moldata']['type'] == 'update':
+            self.delete_data(mol_id)
+        
+        # 执行SQL写入与更新操作
         self.write_json_data(mol_id, dict_j)
         # 写入图片数据
         pic_fp = dict_conf.agent_bitmapdir + '/' + dict_j['mol_pic_path']

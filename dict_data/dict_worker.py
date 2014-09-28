@@ -384,46 +384,6 @@ class DictWorker(object):
         for r in rs:
             self.update_stat_table(r['mol_id'], r['struc'])
     
-    def update_stat_table(self, mol_id, mol):
-        try:
-            c = "echo \"%s\" | %s -aXbHs 2>&1" % (mol, dict_conf.CHECKMOL_V2)
-            #logging.info(u'执行命令:%s', c)
-            result = os.popen(c).read()
-            logging.info(u'指令执行的结果为:%s', result)
-            results = result.split("\n")
-            self.insert_stat_table(mol_id, mol, results)
-        except Exception, e:
-            logging.error(u"处理mol_id数据时出错:%s", mol_id)
-            logging.error(traceback.format_exc())
-        
-    
-    # 新指令更新加速表的数据, 需要和PHP同步修改
-    def insert_stat_table(self, mol_id, mol, results):
-        molstat = results[0]
-        molfgb = results[1]
-        molhfp = results[2]
-        if ('unknown' in molstat) or ('invalid' in molstat):
-            logging.info(u"更新mol_id:%s加速表时，指令返回的结果错误", mol_id)
-            return
-        logging.info(u"更新mol_id:%s 加速表数据", mol_id)
-        self.delete_stat_table(mol_id)
-        sql = 'insert into search_molstat values (%s,%s)' % (mol_id, molstat)
-        # logging.info(u"执行的sql:%s", sql)
-        self.db_dict.insert(sql)
-        molfgb = molfgb.replace(';', ',')
-        sql = 'insert into search_molfgb values (%s,%s)' % (mol_id, molfgb)
-        self.db_dict.insert(sql)
-        
-        molhfp = molhfp.replace(';', ',')
-        sql = 'insert into search_molcfp values (%s,%s,%s)'
-        cand = "%s$$$$%s" % (mol, self.fpdef)
-        cand = cand.replace('$', '\$')
-        c = "echo \"%s\" | %s -Fs 2>&1" % (cand, dict_conf.MATCHMOL_V2)
-        result = os.popen(c).read().replace('\n', '')
-        #print result
-        sql = sql % (mol_id, result, molhfp)
-        self.db_dict.insert(sql)
-    
     def import_table_data(self):
         sql = 'select * from dic_source_data'
         rs = self.db_dict_source.query(sql)
