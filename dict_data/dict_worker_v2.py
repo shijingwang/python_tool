@@ -278,15 +278,22 @@ class DictWorkerV2(DictCompound):
         old_pic_fp = dict_conf.worker_bitmapdir + '/' + old_pic_dir
         self.fu.copy_file(old_pic_fp, new_pic_fp)
         
-        # 删除mol_data的数据，以便将在线用户写入的字典数据同步过来
-        sql = 'delete from search_moldata where mol_id=%s'
-        self.db_dict.execute(sql, mol_id)
-        self.delete_data(mol_id)
-        # 写入服务端的数据
-        self.write_json_data(mol_id, dict_j)
+        check_mol_id = self.check_match(dict_j['cas_no'], dict_j['mol'])
+        # 没有数据的话，再进行写入操作
+        if check_mol_id < 0:
+            # 删除mol_data的数据，以便将在线用户写入的字典数据同步过来
+            sql = 'delete from search_moldata where mol_id=%s'
+            self.db_dict.execute(sql, mol_id)
+            self.delete_data(mol_id)
+            # 写入服务端的数据
+            self.write_json_data(mol_id, dict_j)
         
         # 将本地更改mol_id的数据同步至服务端
-        self.push_dict_data(new_mol_id)
+        redis_msg = {}
+        self.read_sql(redis_msg, new_mol_id)
+        self.read_img(redis_msg, new_mol_id)
+        redis_msg = json.dumps(redis_msg)
+        self.redis_server.lpush(CK.R_DICT_IMPORT, redis_msg)
         
     def generate_pic_path(self, mol_id):
         pic_path = str(mol_id)

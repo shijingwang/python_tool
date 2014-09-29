@@ -272,6 +272,11 @@ class DictAgent(DictCompound):
                     self.redis_server.lpush(CK.R_DICT_SYN, redis_msg)
                     logging.warn(u'mol_id:%s 是用户新增记录,需要将数据同步至离线数据库', mol_id)
             return
+        if dict_j['search_moldata']['type'] == 'insert':
+            check_mol_id = self.check_match(dict_j['cas_no'], dict_j['mol'])
+            if check_mol_id > 0:
+                logging.error(u'同步mol_id:%s 数据时, 与当前数据库中的mol_id:%s 数据表示同一化合物.', dict_j['mol_id'], check_mol_id)
+                return
         
         # 对字典的数据进行更新, 首先删除其余5张表无用的数据
         if len(rs) > 0 and dict_j['search_moldata']['type'] == 'update':

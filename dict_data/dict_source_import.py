@@ -33,10 +33,10 @@ class DictSourceImport(object):
             if not row[1] or len(row[1].strip()) > 0:
                 cas = row[1].replace('`', '')
             logging.info("%s %s %s %s", row[0], cas, row[2], row[3])
-            sql = 'insert into dic_source_data (name_en,data_type,cas_no,smiles) values (%s,1,%s,%s)'
+            sql = 'insert into dic_source_data (name_en,write_type,data_type,cas_no,smiles) values (%s,1,1,%s,%s)'
             # self.db_dict_source.insert(sql, [row[3], cas, row[2]])
             self.db_dict_source.insert(sql, row[3], cas, row[2])
-            if counter >= 10:
+            if counter >= 12:
                 break
         logging.info("完成数据导入")
 

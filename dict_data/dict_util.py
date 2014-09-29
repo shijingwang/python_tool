@@ -122,7 +122,7 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     du = DictUtil()
-    # du.import_table_data()
-    du.write_redis_data()
+    du.import_table_data()
+    # du.write_redis_data()
     # du.string_test()
     logging.info(u'完成初始化!');
