@@ -40,6 +40,8 @@ class DictCompound(object):
             rs = self.db_dict.query(sql, cas_no)
             for r in rs:
                 return r['mol_id']
+            # 对应的CAS号没有相应的数据,程序返回
+            return -1
         c = "echo \"%s\" | %s -axHs" % (mol, dict_conf.CHECKMOL_V2)
         # logging.info(c)
         result = os.popen(c).read()
@@ -55,18 +57,21 @@ class DictCompound(object):
         result1 = result1.replace(';', ' and ').replace(':', '=').replace('n_', 'stat.n_')
         sql = 'select stat.mol_id,struc.struc from search_molstat as stat, search_molstruc as struc where (%s) and (stat.mol_id=struc.mol_id)'
         sql = sql % (result1)
-        # logging.info(u"执行的sql:%s", sql)
+        # logging.info(u"查询加整党表数据，执行的sql:%s", sql)
         rs = self.db_dict.query(sql)
         if len(rs) == 0:
             return -1
         
+        # logging.info(u'对比Mol文件')
         for r in rs:
             self.fu.delete_file(self.tmp_mol2)
             mol2_writer = open(self.tmp_mol2, 'w')
             mol2_writer.write(r['struc'])
             mol2_writer.close()
-            c = "%s -aixs %s %s" % (dict_conf.MATCHMOL_V2, self.tmp_mol1, self.tmp_mol2)
+            c = "%s -aix %s %s" % (dict_conf.MATCHMOL_V2, self.tmp_mol1, self.tmp_mol2)
+            # logging.info(u"执行的指令:%s", c)
             result = os.popen(c).read()
+            # logging.info(u"执行结果:%s", result)
             # 返回相应的molid
             if ':T' in result:
                 logging.info(u'cas_no:%s 和 mol_id:%s 指向同一个产品', cas_no, r['mol_id'])

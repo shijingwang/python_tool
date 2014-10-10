@@ -72,4 +72,7 @@ alter table search_molstat_new rename to search_molstat;
 alter table search_molfgb_new rename to search_molfgb;
 alter table search_molcfp_new rename to search_molcfp;
 
+--更新dic_source_data的mol_id
+update dic_source_data a, z_dic_molbase.search_moldata b set a.mol_id=b.mol_id where a.cas_no=b.cas_no;
+
 

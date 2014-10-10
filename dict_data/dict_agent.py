@@ -21,8 +21,6 @@ class DictAgent(DictCompound):
     
     def __init__(self):
         DictCompound.__init__(self)
-        if not os.path.exists(dict_conf.worker_bitmapdir):
-            os.makedirs(dict_conf.worker_bitmapdir)
         self.n_p = re.compile(r'>\s*<\w+')
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_AGENT)
     

@@ -32,3 +32,14 @@ is_user_add
 
 数据离线维护的方式：
 
+
+10上程序启动脚本(日志的导出目录区分程序运行的是那个环境的):
+nohup python /usr/local/python_tool/dict_data_prod/dict_worker_v2.py --logfile=/newdata2/log/dict_worker/dict_worker_prod.log>/dev/null &
+python dict_worker_v2.py --logfile=/newdata2/log/dict_worker/dict_worker_dev.log
+
+
+正式环境启动指令:
+启动命令: 
+cd /opt/molbase.inc/dic_do/python_tool/dict_data
+nohup python2.7 dict_agent.py --logfile=/opt/molbase.inc/log/dict_agent.log > /dev/null &
+

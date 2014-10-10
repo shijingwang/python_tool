@@ -92,7 +92,7 @@ class DictWorkerV2(DictCompound):
             params.append(v)
             # print "%s : %s" % ((i + 1), v)
         if wtype == 'insert':
-            # 用户添加的数据
+            # 用户添加的数据，则需要进行相应的审核
             if data_dict.get('source') == 'user':
                 params.append(1)
                 params.append(0)
@@ -223,6 +223,7 @@ class DictWorkerV2(DictCompound):
             return
 
         check_mol_id = self.check_match(data_dict['cas_no'], data_dict['mol'])
+        logging.info('mol_id 已经check完成')
         # 字典中有相应的数据
         if check_mol_id > 0:
             logging.warn(u'数据已经存在!')
