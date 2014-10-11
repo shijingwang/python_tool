@@ -1,5 +1,2 @@
-2014-08-20号数据清洗标记
-清洗之前最大的cas号:208267
-208267
 
-png_checkout-v3.exe 用于对chemdraw 生成的核磁图谱的数据进行处理，去除一些相应的文字数据
+png_checkout-v3.exe 鐢ㄤ簬瀵筩hemdraw 鐢熸垚鐨勬牳纾佸浘璋辩殑鏁版嵁杩涜澶勭悊锛屽幓闄や竴浜涚浉搴旂殑鏂囧瓧鏁版嵁
