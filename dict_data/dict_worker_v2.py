@@ -37,9 +37,17 @@ class DictWorkerV2(DictCompound):
         if not dict_v:
             return
         # logging.info(u'接收到的任务为:%s', dict_v)
-        self.db_dict.reconnect()
         dict_j = json.loads(dict_v)
-        self.write_dic(dict_j)
+        
+        # 写入mol文件数据，以便进行后续操作
+        self.fu.delete_file(self.tmp_mol1)
+        mol1_writer = open(self.tmp_mol1, 'w')
+        mol1_writer.write(dict_j['mol'])
+        mol1_writer.close()
+        if dict_j['wtype'] == 'insert':
+            self.write_dic(dict_j)
+        if dict_j['wtype'] == 'update':
+            self.update_dic(dict_j)
 
     def read_dict_task_thread(self):
         logging.info(u'启动字典创建同步线程')
@@ -56,29 +64,22 @@ class DictWorkerV2(DictCompound):
                 logging.error(u"DictCreate队列中的数据处理出错,%s", e)
                 logging.error(traceback.format_exc())
     
-    def write_dic(self, data_dict):
-        logging.info(u"处理cas_no:%s name:%s", data_dict['cas_no'], data_dict.get('name_en', ''))
-        if not self.cu.cas_check(data_dict['cas_no']):
-            logging.warn(u'CAS号校验未通过!')
-            return
-
-        self.fu.delete_file(self.tmp_mol1)
-        mol1_writer = open(self.tmp_mol1, 'w')
-        mol1_writer.write(data_dict['mol'])
-        mol1_writer.close()
-        check_mol_id = self.check_match(data_dict['cas_no'], data_dict['mol'])
-        # 字典中有相应的数据
-        if check_mol_id > 0:
-            logging.warn(u'数据已经存在!')
-            return
-        else:
-            mol_id = self.get_write_molid()
-        
+    # wtype 写入类型, insert 写入新数据 update 更新数据
+    def write_dic_common(self, mol_id, wtype, data_dict):
+        # 填充没有字典的数据
+        if not data_dict.get('name_en'):
+            data_dict['name_en'] = ''
+        if not data_dict.get('name_en_alias'):
+            data_dict['name_en_alias'] = ''
+        if not data_dict.get('name_cn'):
+            data_dict['name_cn'] = ''
+        if not data_dict.get('name_cn_alias'):
+            data_dict['name_cn_alias'] = ''
         params = [mol_id]
         params.append(data_dict['name_en'])
         params.append(data_dict['name_en_alias'])
-        params.append(data_dict['name_cn'])
         params.append(data_dict['name_cn_alias'])
+        params.append(data_dict['name_cn'])
         params.append(data_dict['cas_no'])
         c = "obprop %s 2>/dev/null | awk -F\"\\t\" '{print $1}' | cut -c 17- | head -16 | tail -15"
         c = c % (self.tmp_mol1)
@@ -90,8 +91,8 @@ class DictWorkerV2(DictCompound):
                 continue
             params.append(v)
             # print "%s : %s" % ((i + 1), v)
-        if check_mol_id < 0 :
-            # 用户添加的数据
+        if wtype == 'insert':
+            # 用户添加的数据，则需要进行相应的审核
             if data_dict.get('source') == 'user':
                 params.append(1)
                 params.append(0)
@@ -110,9 +111,10 @@ class DictWorkerV2(DictCompound):
             logging.info(u"写入新数据,mol_id:%s!", mol_id)
             # logging.info(sql)
             self.db_dict.insert(sql, *params)
+        
         # 防止数据更新, 带来的冲击与影响
-        else:
-            sql = '''update search_moldata  set formula=%s,mol_weight=%s,exact_mass=%s,smiles=%s,inchi=%s,
+        elif wtype == 'update':
+            sql = '''update search_moldata set formula=%s,mol_weight=%s,exact_mass=%s,smiles=%s,inchi=%s,
                                                     num_atoms=%s,num_bonds=%s,num_residues=%s,sequence=%s,
                                                     num_rings=%s,logp=%s,psa=%s,mr=%s
                                                     where mol_id=%s
@@ -121,38 +123,27 @@ class DictWorkerV2(DictCompound):
             u_params = params[6:]
             u_params.append(mol_id)
             self.db_dict.execute(sql, *u_params)
+            update_mol_sql = sql
+            update_mol_params = u_params
+        else:
+            raise Exception(555, '不支持的业务类型')
+        
+        # 删除其余5张表无用的数据
         self.delete_data(mol_id)
-        # 对mol文件进行相应的格式化
-        c = "echo \"%s\" | checkmol -m - 2>&1" % data_dict['mol']
+
+        # 对mol文件进行相应的格式化, 并对数据进行保存
+        c = "echo \"%s\" | %s -ms 2>&1" % (data_dict['mol'], dict_conf.CHECKMOL_V2)
         result = os.popen(c).read()
         data_dict['mol'] = result
         # print "molformat>>>" + result
         sql = "insert into search_molstruc values (%s,%s,0,0)"
         params = [mol_id, data_dict['mol']]
         self.db_dict.insert(sql, *params)
-        c = "echo \"%s\" | checkmol -aXbH - 2>&1" % data_dict['mol']
-        result = os.popen(c).read()
-        # print result
-        results = result.split("\n")
-        molstat = results[0]
-        molfgb = results[1]
-        molhfp = results[2]
-        if ('unknown' not in molstat) and ('invalid' not in molstat):
-            self.delete_stat_table(mol_id)
-            sql = 'insert into search_molstat values (%s,%s)' % (mol_id, molstat)
-            # logging.info(u"执行的sql:%s", sql)
-            self.db_dict.insert(sql)
-            molfgb = molfgb.replace(';', ',')
-            sql = 'insert into search_molfgb values (%s,%s)' % (mol_id, molfgb)
-            self.db_dict.insert(sql)
-            molhfp = molhfp.replace(';', ',')
-            sql = 'insert into search_molcfp values (%s,%s,%s)'
-            cand = "%s$$$$%s" % (data_dict['mol'], self.fpdef)
-            cand = cand.replace('$', '\$')
-            c = "echo \"%s\" | %s -F - 2>&1" % (cand, dict_conf.MATCHMOL)
-            result = os.popen(c).read().replace('\n', '')
-            sql = sql % (mol_id, result, molhfp)
-            self.db_dict.insert(sql)
+        
+        # 写入加速表数据
+        self.update_stat_table(mol_id, data_dict['mol'])
+        
+        # 生成图片数据
         pic_dir = self.generate_pic_path(mol_id)
         pic_fp = dict_conf.worker_bitmapdir + '/' + pic_dir
         if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
@@ -199,24 +190,46 @@ class DictWorkerV2(DictCompound):
         result = os.popen(c).read().replace('\n', '')
         pic_width = result.split(' ')[0]
         pic_height = result.split(' ')[1]
-        status = 1
         # print 'pic_size>>' + result
-        sql = "insert into search_pic2d (mol_id,type,status,s_pic,s_width,s_height) values (%s,1,%s,%s,%s,%s)"
-        params = [mol_id, status, pic_dir, pic_width, pic_height]
+        sql = "insert into search_pic2d (mol_id,type,status,s_pic,s_width,s_height) values (%s,1,1,%s,%s,%s)"
+        params = [mol_id, pic_dir, pic_width, pic_height]
         # print sql
         self.db_dict.insert(sql, *params);
         
-        self.push_dict_data(mol_id)
-        return mol_id
-    
-    def push_dict_data(self, mol_id):
+        # 将数据推送到服务器端
+        # 提取mol文件，以便进行匹配
         logging.info(u'将mol_id:%s 字典数据同步至服务端', mol_id)
         redis_msg = {}
         self.read_sql(redis_msg, mol_id)
         self.read_img(redis_msg, mol_id)
+        # 在些对redis_msg中的 search_mol是否更新进行处理
+        if wtype == 'update':
+            redis_msg['search_moldata'] = {'sql':update_mol_sql, 'params':update_mol_params}
+            redis_msg['search_moldata']['type'] = 'update'
         redis_msg = json.dumps(redis_msg)
         # print redis_msg
         self.redis_server.lpush(CK.R_DICT_IMPORT, redis_msg)
+        return mol_id
+    
+    # 更新字典数据
+    def update_dic(self, data_dict):
+        self.write_dic_common(data_dict['mol_id'], 'update', data_dict)
+        pass;
+    
+    def write_dic(self, data_dict):
+        logging.info(u"处理cas_no:%s Attr:%s", data_dict['cas_no'], data_dict)
+        if data_dict['cas_no'] and not self.cu.cas_check(data_dict['cas_no']):
+            logging.warn(u'CAS号校验未通过!')
+            return
+
+        check_mol_id = self.check_match(data_dict['cas_no'], data_dict['mol'])
+        logging.info('mol_id 已经check完成')
+        # 字典中有相应的数据
+        if check_mol_id > 0:
+            logging.warn(u'数据已经存在!')
+            return
+        mol_id = self.get_write_molid()
+        self.write_dic_common(mol_id, 'insert', data_dict)
     
     def read_img(self, redis_msg, mol_id):
         sql = 'select * from search_pic2d where mol_id=%s'
@@ -235,7 +248,6 @@ class DictWorkerV2(DictCompound):
         dict_v = self.redis_server.rpop(CK.R_DICT_SYN)
         if not dict_v:
             return
-        self.db_dict.reconnect()
         logging.info(u'返回的数据为:%s', dict_v)
         dict_j = json.loads(dict_v)
         mol_id = dict_j['mol_id']
@@ -255,7 +267,6 @@ class DictWorkerV2(DictCompound):
         self.db_dict.execute(sql, new_mol_id, mol_id)
         sql = 'update search_molcfp set mol_id=%s where mol_id=%s'
         self.db_dict.execute(sql, new_mol_id, mol_id)
-       
         
         # 修改图片路径
         new_pic_dir = self.generate_pic_path(new_mol_id)
@@ -268,15 +279,22 @@ class DictWorkerV2(DictCompound):
         old_pic_fp = dict_conf.worker_bitmapdir + '/' + old_pic_dir
         self.fu.copy_file(old_pic_fp, new_pic_fp)
         
-        # 删除mol_data的数据，以便将在线用户写入的字典数据同步过来
-        sql = 'delete from search_moldata where mol_id=%s'
-        self.db_dict.execute(sql, mol_id)
-        self.delete_data(mol_id)
-        # 写入服务端的数据
-        self.write_json_data(mol_id, dict_j)
+        check_mol_id = self.check_match(dict_j['cas_no'], dict_j['mol'])
+        # 没有数据的话，再进行写入操作
+        if check_mol_id < 0:
+            # 删除mol_data的数据，以便将在线用户写入的字典数据同步过来
+            sql = 'delete from search_moldata where mol_id=%s'
+            self.db_dict.execute(sql, mol_id)
+            self.delete_data(mol_id)
+            # 写入服务端的数据
+            self.write_json_data(mol_id, dict_j)
         
         # 将本地更改mol_id的数据同步至服务端
-        self.push_dict_data(new_mol_id)
+        redis_msg = {}
+        self.read_sql(redis_msg, new_mol_id)
+        self.read_img(redis_msg, new_mol_id)
+        redis_msg = json.dumps(redis_msg)
+        self.redis_server.lpush(CK.R_DICT_IMPORT, redis_msg)
         
     def generate_pic_path(self, mol_id):
         pic_path = str(mol_id)
@@ -309,7 +327,7 @@ class DictWorkerV2(DictCompound):
     def start_worker2(self):
         dict_task_thread = self.__getattribute__('read_dict_task_thread')
         t2 = threading.Thread(target=dict_task_thread)
-        t2.start()      
+        t2.start()
 
 if __name__ == '__main__':
 

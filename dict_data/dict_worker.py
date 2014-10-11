@@ -355,7 +355,7 @@ class DictWorker(object):
         sql = sql % mol_id
         self.db_dict.execute(sql)
         
-    def update_stat_table(self):
+    def update_stat_table_db(self):
         counter = 0
         while 1:
             if counter > 10000:
@@ -372,41 +372,17 @@ class DictWorker(object):
             rs = self.db_dict.query(sql, mol_id)
             logging.info(u"需要修正的加速表的数据量为:%s 起始mol_id:%s", len(rs), mol_id)
             for r in rs:
-                try:
-                    c = "echo \"%s\" | %s -aXbHs 2>&1" % (r['struc'], dict_conf.CHECKMOL_V2)
-                    result = os.popen(c).read()
-                    results = result.split("\n")
-                    self.insert_stat_table(r['mol_id'], r['struc'], results)
-                except Exception, e:
-                    logging.error(u"处理mol_id数据时出错:%s", r['mol_id'])
-                    logging.error(traceback.format_exc())
+                self.update_stat_table(r['mol_id'], r['struc'])
             counter += 1
     
-    # 新指令更新加速表的数据, 需要和PHP同步修改
-    def insert_stat_table(self, mol_id, mol, results):
-        molstat = results[0]
-        molfgb = results[1]
-        molhfp = results[2]
-        if ('unknown' in molstat) or ('invalid' in molstat):
-            logging.info(u"更新mol_id:%s加速表时，指令返回的结果错误", mol_id)
-            return
-        logging.info(u"更新mol_id:%s 加速表数据", mol_id)
-        self.delete_stat_table(mol_id)
-        sql = 'insert into search_molstat values (%s,%s)' % (mol_id, molstat)
-        # logging.info(u"执行的sql:%s", sql)
-        self.db_dict.insert(sql)
-        molfgb = molfgb.replace(';', ',')
-        sql = 'insert into search_molfgb values (%s,%s)' % (mol_id, molfgb)
-        self.db_dict.insert(sql)
-        
-        molhfp = molhfp.replace(';', ',')
-        sql = 'insert into search_molcfp values (%s,%s,%s)'
-        cand = "%s$$$$%s" % (mol, self.fpdef)
-        cand = cand.replace('$', '\$')
-        c = "echo \"%s\" | %s -F - 2>&1" % (cand, dict_conf.MATCHMOL)
-        result = os.popen(c).read().replace('\n', '')
-        sql = sql % (mol_id, result, molhfp)
-        self.db_dict.insert(sql)
+    def update_stat_table_fix(self):
+        fix_mol_ids = [45]
+        fix_mol_ids = str(fix_mol_ids).replace('L', '')
+        #print fix_mol_ids
+        sql = 'select * from search_molstruc where mol_id in (%s)' % fix_mol_ids[1:len(fix_mol_ids) - 1]
+        rs = self.db_dict.query(sql)
+        for r in rs:
+            self.update_stat_table(r['mol_id'], r['struc'])
     
     def import_table_data(self):
         sql = 'select * from dic_source_data'
@@ -453,7 +429,7 @@ class DictWorker(object):
 if __name__ == '__main__':
 
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="/tmp/sdf_import.log", help="NSQ topic")
+    define("logfile", default="/tmp/data_fix.log", help="NSQ topic")
     define("func_name", default="import_table_data")
     define("sdf_file", default="/home/kulen/Documents/xili_data/xili_2.sdf")
     define("mol_id", default="-1")
@@ -470,12 +446,6 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     worker = DictWorker()
-    if mol_id > 0:
-        worker.i_mol_id = mol_id
-    if func_name == 'import_table_data':
-        worker.import_table_data()
-    if func_name == 'import_sdf':
-        worker.import_sdf(sdf_file)
-    if func_name == 'update_stat_table':
-        worker.update_stat_table()
+    # worker.update_stat_table_fix()
+    worker.update_stat_table_db()
     logging.info(u'程序运行完成')

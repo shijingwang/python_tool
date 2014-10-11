@@ -21,8 +21,6 @@ class DictAgent(DictCompound):
     
     def __init__(self):
         DictCompound.__init__(self)
-        if not os.path.exists(dict_conf.worker_bitmapdir):
-            os.makedirs(dict_conf.worker_bitmapdir)
         self.n_p = re.compile(r'>\s*<\w+')
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_AGENT)
     
@@ -31,7 +29,6 @@ class DictAgent(DictCompound):
         if not sdf_text:
             return
         logging.info(u'从redis接收数据:%s', sdf_text)
-        self.db_dict.reconnect()
         sdf_json = json.loads(sdf_text)
         md5 = sdf_json['file_key']
         file_path = sdf_json['file_path']
@@ -61,6 +58,24 @@ class DictAgent(DictCompound):
     
     def read_sdf(self, code, md5, file_path):
         logging.info(u'处理md5:%s  文件为:%s 的数据', md5, file_path)
+        
+        sql = 'select * from sdf_mapping'
+        rs = self.db_dict.query(sql)
+        name_mapping = {}
+        for r in rs:
+            alias_names = []
+            alias_names.append(r['standard_name'].lower())
+            if not r['alias_name']:
+                r['alias_name'] = ''
+            r['alias_name'] = r['alias_name'].strip()
+            if len(r['alias_name']) > 0:
+                _names = r['alias_name'].split('|')
+                for name in _names:
+                    if len(name.strip()) == 0:
+                        continue
+                    alias_names.append(name.strip().lower())
+            name_mapping[r['standard_name'].lower()] = alias_names
+        logging.info(u'处理SDF字段映射名是:%s', name_mapping)
         fp_reader = open(file_path)
         mol = ''
         name = ''
@@ -84,10 +99,7 @@ class DictAgent(DictCompound):
                 if name:
                     value = value.replace('\n', '').replace('\r', '').strip()
                     # print "Name:%s Value:%s" % (name, value)
-                    if name in ['spec_1', 'spec_2', 'spec_3', 'spec_4', 'spec_5']:
-                        prices.append(value)
-                    # 商品价格表数据
-                    goods_dict[name] = value
+                    goods_dict[name.lower()] = value
                 if self.n_p.match(check_line):
                     name = ''
                     value = ''
@@ -103,30 +115,42 @@ class DictAgent(DictCompound):
             if check_line == '$$$$':
                 total_count += 1
                 try:
+                    # 完成字段数据的映射关系
                     v_d = {}
-                    for key in dict_conf.SDF_KEY:
+                    # name_key nk
+                    for nk in name_mapping:
                         # goods_key gk
                         for gk in goods_dict.keys():
-                            if gk in dict_conf.SDF_KEY[key]:
-                                v_d[key] = goods_dict[gk]
+                            if gk in name_mapping[nk]:
+                                v_d[nk] = goods_dict[gk]
+                    # 内部逻辑处理使用的逻辑
+                    v_d['name_en'] = v_d.get('product_name', '')
+                    v_d['name_cn'] = v_d.get('product_name_cn', '')
+                    v_d['cas_no'] = v_d.get('cas_number', '')
                     result = self.write_dic(v_d, mol)
                     goods_list = []
                     err_msg = ''
                     if result['mol_id'] > 0:
+                        prices = []
+                        # price_key pk
+                        for pk in v_d:
+                            if pk in ['spec_1', 'spec_2', 'spec_3', 'spec_4', 'spec_5']:
+                                prices.append(v_d.get(pk))
                         for price in prices:
                             if not price:
                                 err_msg += u'CAS号:%s 存在无价格的规格  ' % (v_d.get('cas_no', ''))
                                 continue
                             goods = {
                                 'mol_id':result['mol_id'],
-                                'cas_no':v_d.get('cas_no', ''),
+                                'cas_no':v_d.get('cas_number', ''),
                                 'product_name': v_d.get('name_en', ''),
                                 'product_name_cn': v_d.get('name_cn', ''),
-                                'purity':goods_dict.get('PURITY', ''),
-                                'lead_time':goods_dict.get('LEAD_TIME', ''),
-                                'stock':goods_dict.get('STOCK', ''),
-                                'capacity':goods_dict.get('CAPACITY', ''),
-                                'price':price
+                                'purity':v_d.get('purity', ''),
+                                'lead_time':v_d.get('lead_time', ''),
+                                'stock':v_d.get('stock', ''),
+                                'capacity':v_d.get('capacity', ''),
+                                'price':price,
+                                'sku':v_d.get('sku', '')
                             }
                             goods_list.append(goods)
                             price_total_count += 1
@@ -157,7 +181,6 @@ class DictAgent(DictCompound):
                 value = ''
                 counter = 0
                 goods_dict = {}
-                prices = []
         fp_reader.close()
         # 推送一条处理完的结果
         p_result = {}
@@ -176,7 +199,8 @@ class DictAgent(DictCompound):
     def write_dic(self, data_dict, mol):
         result = {'code':0, 'msg':'success', 'mol_id':-1}
         logging.info(u"处理属性:%s数据", data_dict)
-        if not self.cu.cas_check(data_dict['cas_no']):
+        # 允许cas号为空的数据
+        if data_dict['cas_no'] and not self.cu.cas_check(data_dict['cas_no']):
             result['code'] = -1;result['msg'] = u'CAS号不符合规则'
             return result
         self.fu.delete_file(self.tmp_mol1)
@@ -202,6 +226,7 @@ class DictAgent(DictCompound):
             data_dict['name_cn_alias'] = ''
         data_dict['mol'] = mol
         data_dict['source'] = 'user'
+        data_dict['wtype'] = 'insert'
         dict_create_json = json.dumps(data_dict)
         # 推送任务, rpush优先级比较高,rpop
         self.redis_server.rpush(CK.R_DICT_CREATE, dict_create_json)
@@ -228,7 +253,6 @@ class DictAgent(DictCompound):
         if not dict_v:
             return
         # logging.info(u'接收到的字黄写入数据为:%s', dict_v)
-        self.db_dict.reconnect()
         dict_j = json.loads(dict_v)
         mol_id = dict_j['mol_id']
         sql = 'select * from search_moldata where mol_id=%s'
@@ -246,6 +270,17 @@ class DictAgent(DictCompound):
                     self.redis_server.lpush(CK.R_DICT_SYN, redis_msg)
                     logging.warn(u'mol_id:%s 是用户新增记录,需要将数据同步至离线数据库', mol_id)
             return
+        if dict_j['search_moldata']['type'] == 'insert':
+            check_mol_id = self.check_match(dict_j['cas_no'], dict_j['mol'])
+            if check_mol_id > 0:
+                logging.error(u'同步mol_id:%s 数据时, 与当前数据库中的mol_id:%s 数据表示同一化合物.', dict_j['mol_id'], check_mol_id)
+                return
+        
+        # 对字典的数据进行更新, 首先删除其余5张表无用的数据
+        if len(rs) > 0 and dict_j['search_moldata']['type'] == 'update':
+            self.delete_data(mol_id)
+        
+        # 执行SQL写入与更新操作
         self.write_json_data(mol_id, dict_j)
         # 写入图片数据
         pic_fp = dict_conf.agent_bitmapdir + '/' + dict_j['mol_pic_path']
