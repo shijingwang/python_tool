@@ -3,6 +3,11 @@ import csv
 import logging
 import sys, os
 from tornado.options import define, options
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import smtplib
+import datetime
+import time
 try:
     import python_tool
 except ImportError:
@@ -61,6 +66,7 @@ class Report(object):
             sql = "select * from spider_site where id='%s'"
             sql = sql % result['site_id']
             rs = self.db_spider.query(sql)
+            result['domain'] = ''  # 设置一个默认值，防止相应的数据抓取不到
             for r in rs:
                 result['domain'] = r['domain']
             dtype = u'价格' if result['type'] == 1 else u'MSDS' 
@@ -81,8 +87,27 @@ class Report(object):
                 self.file_list.append(path + '/' + i)
     
     def send_mail(self):
-        
-        pass
+        # 加邮件头
+        msg = MIMEMultipart()
+
+        # 构造附件1
+        att1 = MIMEText(open('/tmp/report.csv', 'rb').read(), 'base64', 'utf-8')
+        att1["Content-Type"] = 'application/octet-stream'
+        att1["Content-Disposition"] = 'attachment; filename="report.csv"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
+        msg.attach(att1)
+        msg['to'] = ";".join(['guoqiang.zhang@molbase.com', 'fenghao@molbase.com', 'ouyangxw@molbase.com'])  
+        msg['from'] = 'guoqiang.zhang@molbase.com'
+        msg['subject'] = datetime.datetime.now().strftime('%Y-%m-%d') + u'抓取进度'
+        # 发送邮件
+        try:
+            server = smtplib.SMTP()
+            server.connect(settings.MAIL_SEND_SERVER)
+            server.login(settings.MAIL_USER, settings.MAIL_PASSWORD)  # XXX为用户名，XXXXX为密码
+            server.sendmail(msg['from'], msg['to'], msg.as_string())
+            server.quit()
+            logging.info("邮件发送成功")
+        except Exception, e:  
+            logging.error("邮件发送失败,%s", e)
 
 if __name__ == '__main__':
     reload(sys)
@@ -95,5 +120,8 @@ if __name__ == '__main__':
     func_name = options.func_name
     logging.info(u'写入的日志文件为:%s', logfile)
     report = Report()
-    report.statistic_db('2014-08-11', '2014-08-12')
+    start_date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600 * 24))
+    stop_date = time.strftime('%Y-%m-%d', time.localtime(time.time())) 
+    # report.statistic_db(start_date, stop_date)
+    report.send_mail()
     logging.info(u'程序运行完成')

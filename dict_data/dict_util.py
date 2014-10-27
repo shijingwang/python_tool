@@ -4,6 +4,7 @@ import logging
 import os, sys
 from tornado.options import define, options
 import traceback
+import time
 
 try:
     import python_tool
@@ -32,7 +33,7 @@ class DictUtil(DictCompound):
         # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):
-        sql = 'select * from dic_source_data where has_dispose=0 order by id asc'
+        sql = 'select * from dic_source_data where has_dispose=0 order by id desc'
         rs = self.db_dict_source.query(sql)
         logging.info(u"导入数据量为:%s", len(rs))
         for r in rs:
@@ -103,6 +104,11 @@ class DictUtil(DictCompound):
             print 'Match:' + match.group()
         else:
             print u'未匹配'
+    
+    def fix_dict_daemon(self):
+        while(True):
+            time.sleep(3)
+            self.import_table_data()
         
 if __name__ == '__main__':
     reload(sys)
@@ -122,7 +128,8 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     du = DictUtil()
-    du.import_table_data()
+    du.fix_dict_daemon()
+    # du.import_table_data()
     # du.write_redis_data()
     # du.string_test()
     logging.info(u'完成初始化!');

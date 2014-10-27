@@ -1,3 +1,16 @@
+生产程序部署目录
+122.226.111.3:/usr/local/python_tool/dict_data_prod
+程序启动指令
+nohup python2.7 dict_util.py --logfile=/home/log/dict/util_prod.log >/dev/null &
+nohup python2.7 dict_worker_v2.py --logfile=/home/log/dict/workerv2_prod.log>/dev/null &
+
+
+
+
+
+
+
+SDF文档的处理相关规范
 Queue队列的统一操作方式为: lpush rpop
 sdf 文档接入接口
 Redis Queue:sdf_import_queue
