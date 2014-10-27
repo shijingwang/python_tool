@@ -164,6 +164,8 @@ class Extract(object):
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_S + day)
             for f in self.file_list:
                 target = settings.NMR_CHEM_FILE_PATH_T + f[f.find(settings.NMR_CHEM_FILE_PATH_S) + len(settings.NMR_CHEM_FILE_PATH_S):]
+                if 'ext_' not in target:
+                    continue
                 target = target.replace('/ext_', '/')
                 try:
                     self.image_mark(f, target)
@@ -193,9 +195,9 @@ if __name__ == '__main__':
     # extract.image_mark('/home/kulen/NmrMsdsETL/4.png', '/home/kulen/NmrMsdsETL/4m.png')
     # for i in range(1, 5):
     #    extract.image_mark('F:/ImageCheck/%s.png' % i, 'F:/ImageCheck/%sm.png' % i)
-    #extract.mark_nmrchem_data()
-    # extract.extract_nmrchem_data()
-    extract.readDays()
+    # extract.mark_nmrchem_data()
+    extract.extract_nmrchem_data()
+    # extract.readDays()
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     
