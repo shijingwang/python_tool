@@ -16,6 +16,9 @@ SAVE_PATH = 'F:/file/'
 MOL_FILE_PATH = "D:/molfile/"
 NMR_PIC_PATH = "D:/nmrpic/"
 CHEM_ACX_MOLFILE_PATH = "D:/chemacx_molfile/"
+MAIL_SEND_SERVER = "smtp.molbase.com"
+MAIL_USER = "guoqiang.zhang@molbase.com"
+MAIL_PASSWORD = "rainzgq"
 try:
     from settings_local import *
 except ImportError:

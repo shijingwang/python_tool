@@ -13,13 +13,13 @@ MYSQL_MOLBASE = {"host": "127.0.0.1",
                }
 MYSQL_SPIDER_DATA = {"host": "127.0.0.1",
                "port": "3306",
-               "database": "spider_data",
+               "database": "spiderv2_data",
                "user": "root",
                "password": "rainzgq"
                }
 MYSQL_SPIDER = {"host": "127.0.0.1",
                "port": "3306",
-               "database": "spider",
+               "database": "spiderv2",
                "user": "root",
                "password": "rainzgq"
                }
