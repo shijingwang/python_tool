@@ -86,7 +86,7 @@ class Report(object):
             else:
                 self.file_list.append(path + '/' + i)
     
-    def send_mail(self):
+    def send_mail(self, email):
         # 加邮件头
         msg = MIMEMultipart()
 
@@ -95,7 +95,7 @@ class Report(object):
         att1["Content-Type"] = 'application/octet-stream'
         att1["Content-Disposition"] = 'attachment; filename="report.csv"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
         msg.attach(att1)
-        msg['to'] = ";".join(['guoqiang.zhang@molbase.com', 'fenghao@molbase.com', 'ouyangxw@molbase.com'])  
+        msg['to'] = email
         msg['from'] = 'guoqiang.zhang@molbase.com'
         msg['subject'] = datetime.datetime.now().strftime('%Y-%m-%d') + u'抓取进度'
         # 发送邮件
@@ -122,6 +122,8 @@ if __name__ == '__main__':
     report = Report()
     start_date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600 * 24))
     stop_date = time.strftime('%Y-%m-%d', time.localtime(time.time())) 
-    # report.statistic_db(start_date, stop_date)
-    report.send_mail()
+    report.statistic_db(start_date, stop_date)
+    report.send_mail("fenghao@molbase.com")
+    report.send_mail("ouyangxw@molbase.com")
+    report.send_mail("guoqiang.zhang@molbase.com")
     logging.info(u'程序运行完成')

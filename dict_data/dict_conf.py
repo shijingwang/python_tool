@@ -25,6 +25,7 @@ MOL2PS = "/usr/local/bin/mol2ps"
 GHOSTSCRIPT = "/usr/bin/gs"
 agent_bitmapdir = "/home/kulen/molpic"
 worker_bitmapdir = "/home/kulen/molpic2"
+agent_nmr_picdir = "/home/kulen/nmrpic"
 SDF_RESULT_PATH = "/tmp/"
 scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
