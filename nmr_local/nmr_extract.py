@@ -205,8 +205,9 @@ if __name__ == '__main__':
     nmr = Nmr()
     #nmr.find_stop()
     #nmr.startup_app()
+    
+    nmr.open_mol("C:\\Users\\Administrator\\Desktop\\23672-07-3.mol")
     """
-    nmr.open_mol("C:\\Users\\Administrator\\Desktop\\molfile\\23672-07-3.mol")
     nmr.generate_1h_image("C:\\Users\\Administrator\\Desktop\\cp_1h.png")
     time.sleep(1)
     nmr.generate_13c_image("C:\\Users\\Administrator\\Desktop\\cp_13c.png")

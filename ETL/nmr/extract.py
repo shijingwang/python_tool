@@ -21,6 +21,7 @@ class Extract(object):
     def get_data(self, stype, day):
         sql = "insert into search_nmr (type,cas,path,width,height) values (%s,'%s','%s',%s,%s) on duplicate key update path='%s',width=%s,height=%s"
         counter = 0
+        logging.info(u'写入日期:%s 所有数据', day)
         for f in self.file_list:
             counter += 1
             try:
@@ -79,7 +80,7 @@ class Extract(object):
             layer.paste(mark, (x, y))
         # 处理ChemDraw生成的图片
         elif imWidth > 1200 and imHeight > 1000:
-            ynum = imHeight / 1000
+            ynum = imHeight / 600
             xnum = imWidth / 950
             # print "xnum:%s ynum:%s" % (xnum, ynum)
             yunit = imHeight / ynum
@@ -96,11 +97,13 @@ class Extract(object):
                     layer.paste(mark, (x, y))
                     j += 1
                 i += 1
+        '''
         if imWidth > 1200:
-            nHeight = (imHeight * 1000) / imWidth
-            layer = layer.resize((1000, nHeight))
-            im = im.resize((1000, nHeight))
-        Image.composite(layer, im, layer).save(target, quality=90)
+            nHeight = (imHeight * 1200) / imWidth
+            layer = layer.resize((1200, nHeight))
+            im = im.resize((1200, nHeight))
+        '''
+        Image.composite(layer, im, layer).save(target, quality=80)
         logging.info(u'图片完成打水印:%s', fileName)
     
     def extract_pdf_data(self):
@@ -112,6 +115,11 @@ class Extract(object):
             if os.path.isdir(path + '/' + i):  
                 self.list_file_dir(level + 1, path + '/' + i)
             else:
+                # TODO 代码需要完善,后续进行处理
+                '''
+                if not i.startswith('ext'):
+                    continue
+                '''
                 self.file_list.append(path + '/' + i)
     
     def extract_nmrdb_data(self):
@@ -132,27 +140,44 @@ class Extract(object):
             
     
     def extract_nmrchem_data(self):
-        days = ["2014-07-17", "2014-07-18", "2014-07-19", "2014-07-20", "2014-07-21"]
-        days = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
-        days = ["2014-08-07", "2014-08-08", "2014-08-09", "2014-08-10", "2014-08-11", "2014-08-12", "2014-08-13", "2014-08-14", "2014-08-15", "2014-08-16", "2014-08-17", "2014-08-18"]
+        days1 = ["2014-07-17", "2014-07-18", "2014-07-19", "2014-07-20", "2014-07-21"]
+        days2 = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
+        days3 = ["2014-08-07", "2014-08-08", "2014-08-09", "2014-08-10", "2014-08-11", "2014-08-12", "2014-08-13", "2014-08-14", "2014-08-15", "2014-08-16", "2014-08-17", "2014-08-18"]
+        days4 = ["2014-08-20", "2014-08-21", "2014-08-22", "2014-08-23", "2014-08-24", "2014-08-25", "2014-08-26", "2014-08-27", "2014-08-28", "2014-08-29", "2014-08-30", "2014-08-31", "2014-09-01"]
+        days = days1 + days2 + days3 + days4
+        days = ['2014-09-04', '2014-09-05', '2014-09-06', '2014-09-07', '2014-09-08', '2014-09-09', '2014-09-10', '2014-09-11', '2014-09-12', '2014-09-13', '2014-09-15', '2014-09-16', '2014-09-17', '2014-09-18', '2014-09-19', '2014-09-20', '2014-09-21', '2014-09-22', '2014-09-23', '2014-09-24', '2014-09-25', '2014-09-26', '2014-09-27', '2014-09-28', '2014-09-29', '2014-09-30', '2014-10-10']
         for day in days:
             self.file_list = []
+            logging.info(u'查询目录:%s 所有文件', settings.NMR_CHEM_FILE_PATH_T + day)
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_T + day)
             self.get_data('nmrchem', day)
     
     def mark_nmrchem_data(self):
-        days = ["2014-07-19", "2014-07-20", "2014-07-21"]
-        days = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
-        days = ["2014-08-07", "2014-08-08", "2014-08-09", "2014-08-10", "2014-08-11", "2014-08-12", "2014-08-13", "2014-08-14", "2014-08-15", "2014-08-16", "2014-08-17", "2014-08-18"]
+        days1 = ["2014-07-17", "2014-07-18", "2014-07-19", "2014-07-20", "2014-07-21"]
+        days2 = ["2014-07-22", "2014-07-23", "2014-07-24", "2014-07-25", "2014-07-26", "2014-07-27", "2014-07-28", "2014-07-29", "2014-07-30"]
+        days3 = ["2014-08-07", "2014-08-08", "2014-08-09", "2014-08-10", "2014-08-11", "2014-08-12", "2014-08-13", "2014-08-14", "2014-08-15", "2014-08-16", "2014-08-17", "2014-08-18"]
+        days4 = ["2014-08-20", "2014-08-21", "2014-08-22", "2014-08-23", "2014-08-24", "2014-08-25", "2014-08-26", "2014-08-27", "2014-08-28", "2014-08-29", "2014-08-30", "2014-08-31", "2014-09-01"]
+        days = days1 + days2 + days3 + days4
+        days = ['2014-09-04', '2014-09-05', '2014-09-06', '2014-09-07', '2014-09-08', '2014-09-09', '2014-09-10', '2014-09-11', '2014-09-12', '2014-09-13', '2014-09-15', '2014-09-16', '2014-09-17', '2014-09-18', '2014-09-19', '2014-09-20', '2014-09-21', '2014-09-22', '2014-09-23', '2014-09-24', '2014-09-25', '2014-09-26', '2014-09-27', '2014-09-28', '2014-09-29', '2014-09-30', '2014-10-10']
         for day in days:
             self.file_list = []
             self.list_file_dir(1, settings.NMR_CHEM_FILE_PATH_S + day)
             for f in self.file_list:
                 target = settings.NMR_CHEM_FILE_PATH_T + f[f.find(settings.NMR_CHEM_FILE_PATH_S) + len(settings.NMR_CHEM_FILE_PATH_S):]
+                if 'ext_' not in target:
+                    continue
+                target = target.replace('/ext_', '/')
                 try:
                     self.image_mark(f, target)
                 except Exception, e:
                     logging.error(traceback.format_exc())
+    
+    def readDays(self):
+        path = 'D:/nmrpic'
+        days = []
+        for d in os.listdir(path):
+            days.append(d)
+        print days
 
 if __name__ == '__main__':
 
@@ -172,6 +197,7 @@ if __name__ == '__main__':
     #    extract.image_mark('F:/ImageCheck/%s.png' % i, 'F:/ImageCheck/%sm.png' % i)
     # extract.mark_nmrchem_data()
     extract.extract_nmrchem_data()
+    # extract.readDays()
     logging.info(u'程序运行完成')
     # print os.listdir("/home/kulen/NmrMsdsETL/2014-07-17/000/000/014")
     
