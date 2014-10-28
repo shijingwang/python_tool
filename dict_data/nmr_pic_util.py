@@ -15,13 +15,15 @@ except ImportError:
 import dict_conf
 from common.con_util import ConUtil
 import CK
+import settings
 
 class NmrPicUtil(object):
     
     def __init__(self):
         self.redis_server = ConUtil.connect_redis(dict_conf.REDIS_SERVER)
+        self.db_molbase = ConUtil.connect_mysql(settings.MYSQL_MOLBASE)
     
-    def write_nmr_impor_msg(self):
+    def img_import_msg(self):
         msg = {'mol_id':1}
         msg['cas'] = '12311-11-0'
         pic_dict = {'1h':'/home/kulen/Pictures/2.jpg', '13c':'/home/kulen/Pictures/3.jpg'}
@@ -40,6 +42,23 @@ class NmrPicUtil(object):
             
         msg_j = json.dumps(msg)
         self.redis_server.lpush(CK.R_NMR_IMPORT, msg_j)
+    
+    def mol_import_msg(self):
+        sql = "select * from search_moldata order by mol_id asc limit 10"
+        rs = self.db_molbase.query(sql)
+        for r in rs:
+            logging.info("导入mol_id:%s,cas_no:%s 的mol数据", r['mol_id'], r['cas_no'])
+            sql = "select * from search_molstruc where mol_id=%s"
+            srs = self.db_molbase.query(sql, r['mol_id'])
+            for sr in srs:
+                msg = {}
+                msg['mol_id'] = r['mol_id']
+                msg['cas_no'] = r['cas_no']
+                msg['mol'] = sr['struc']
+                msg_j = json.dumps(msg)
+                self.redis_server.lpush(CK.R_NMR_CREATE, msg_j)
+                break
+        pass
         
 if __name__ == '__main__':
 
@@ -58,5 +77,6 @@ if __name__ == '__main__':
     logging.info(u'写入的日志文件为:%s', logfile)
     
     npu = NmrPicUtil()
-    npu.write_nmr_impor_msg()
+    # npu.img_import_msg()
+    npu.mol_import_msg()
     logging.info(u'程序运行完成')

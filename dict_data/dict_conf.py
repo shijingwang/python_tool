@@ -26,7 +26,11 @@ GHOSTSCRIPT = "/usr/bin/gs"
 agent_bitmapdir = "/home/kulen/molpic"
 worker_bitmapdir = "/home/kulen/molpic2"
 agent_nmr_picdir = "/home/kulen/nmrpic"
+chemdraw_work_dir = "C:\\ChemDraw"
+nmr_img_clean = "C:\\ChemDraw\\clean_app\\img-clean.exe"  # 必须为双反斜杠，否则指令不会执行
+MARK_LOGO_IMG = 'C:/ChemDraw/mark_logov3/logov3_60.png'
 SDF_RESULT_PATH = "/tmp/"
 scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
-REDIS_SERVER = {'host':'127.0.0.1', 'port':6380, 'password':'molbase1010'}
+# REDIS_SERVER = {'host':'127.0.0.1', 'port':6380, 'password':'molbase1010'}
+REDIS_SERVER = {'host':'127.0.0.1', 'port':6379, 'password':''}

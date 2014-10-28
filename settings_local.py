@@ -25,8 +25,10 @@ MYSQL_SPIDER = {"host": "127.0.0.1",
                "user": "root",
                "password": "rainzgq"
                }
+#S->Source
 NMR_CHEM_FILE_PATH_S = "D:/nmrpic/"
 NMR_DB_FILE_PATH_S = "/home/kulen/NmrMsdsETL/nmrdb_origin/"
+#T->Target
 NMR_CHEM_FILE_PATH_T = "D:/nmrpic_mark/"
 NMR_DB_FILE_PATH_T = "/home/kulen/NmrMsdsETL/nmrdb_b/"
 MSDS_FILE_PATH = "/home/kulen/file/"
