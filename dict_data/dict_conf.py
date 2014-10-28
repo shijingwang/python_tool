@@ -33,4 +33,4 @@ SDF_RESULT_PATH = "/tmp/"
 scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
 # REDIS_SERVER = {'host':'127.0.0.1', 'port':6380, 'password':'molbase1010'}
-REDIS_SERVER = {'host':'127.0.0.1', 'port':6379, 'password':''}
+REDIS_SERVER = {'host':'192.168.0.124', 'port':6379, 'password':''}

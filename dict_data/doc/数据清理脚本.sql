@@ -76,3 +76,9 @@ alter table search_molcfp_new rename to search_molcfp;
 update dic_source_data a, z_dic_molbase.search_moldata b set a.mol_id=b.mol_id where a.cas_no=b.cas_no;
 
 
+-- 数据表修正sql
+ALTER TABLE `molbase_check`.`search_nmr` DROP INDEX `unique_cas`;
+ALTER TABLE `molbase_check`.`search_nmr` ADD UNIQUE INDEX `unique_cas` (`mol_id` ASC, `type` ASC);
+
+
+
