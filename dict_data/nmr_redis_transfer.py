@@ -31,7 +31,7 @@ class NmrRedisTransfer(object):
             rs = self.db_dict.query(sql)
             if len(rs) > 0:
                 for r in rs:
-                    mark = r['mark']
+                    mark = r['value']
             else:
                 sql = 'insert into mark (type,value) values (1,0)'
                 self.db_dict.execute(sql)
@@ -57,7 +57,7 @@ class NmrRedisTransfer(object):
                     sql = 'update mark set value=%s where type=1'
                     self.db_dict.execute(sql, r['mol_id'])
         nmr_import_size = self.transfer_redis_server.llen(CK.R_NMR_IMPORT) 
-        logging.info(u'需要发的Redis的消息量:%s', nmr_import_size)
+        logging.info(u'需要转发的Redis的消息量:%s', nmr_import_size)
         if nmr_import_size > 0:
             counter = 0
             while True:
@@ -65,7 +65,7 @@ class NmrRedisTransfer(object):
                 msg = self.transfer_redis_server.rpop(CK.R_NMR_IMPORT)
                 if not msg:
                     break
-                self.redis_server.lpush(CK.R_NMR_IMPORT)
+                self.redis_server.lpush(CK.R_NMR_IMPORT, msg)
                 if counter >= 10:
                     break
 
@@ -76,6 +76,8 @@ class NmrRedisTransfer(object):
             except Exception, e:
                 logging.error(e)
                 logging.error(traceback.format_exc())
+            finally:
+                time.sleep(1)
 
 if __name__ == '__main__':
 
