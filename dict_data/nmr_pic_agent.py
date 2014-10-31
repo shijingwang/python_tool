@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 from tornado.options import define, options
 import logging
-import os, sys, time
+import os, sys, time, datetime
 import traceback
 import json, base64
-import threading
-import re
 try:
     import python_tool
 except ImportError:
@@ -28,18 +26,41 @@ class NmrPicAgent(object):
             return
         msg_j = json.loads(msg)
         mol_id = msg_j['mol_id']
-        
-        keys = []
+        cas = msg_j['cas']
+        logging.info(u"处理mol_id:%s cas:%s NMR图片数据", mol_id, cas)
         sql = 'select * from search_nmr where mol_id=%s' % mol_id
         rs = self.db_dict.query(sql)
-        logging.info('')
+        logging.info(u'数据库中找出的NMR的数量:%s', len(rs))
         for key in ['1h', '13c']:
-            pic_fp = dict_conf.agent_nmr_picdir + '/' + self.generate_pic_path(mol_id, key)
-            if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
-                os.makedirs(pic_fp[0:pic_fp.rfind('/')])
-            img_writer = open(pic_fp, 'wb')
-            img_writer.write(base64.decodestring(msg_j[key]))
-            img_writer.close()
+            if key not in msg_j:
+                continue
+            logging.info(u'处理Key:%s 数据', key)
+            try:
+                #  insert type
+                itype = 1 if key == '1h' else 2
+                for r in rs:
+                    del_file_path = dict_conf.agent_nmr_picdir + r['path']
+                    if r['type'] == itype:
+                        sql = 'delete from search_nmr where id=%s' % r['id']
+                        logging.info(u'执行的sql:%s' , sql)
+                        self.db_dict.execute(sql)
+                        self.delete_file(mol_id, del_file_path)
+                # 对文件数据进行写入
+                days = datetime.datetime.now().strftime('%Y-%m-%d')
+                relative_path = '/%s/%s' % (days, self.generate_pic_path(mol_id, key))
+                pic_fp = dict_conf.agent_nmr_picdir + relative_path
+                if not os.path.exists(pic_fp[0:pic_fp.rfind('/')]):
+                    os.makedirs(pic_fp[0:pic_fp.rfind('/')])
+                img_writer = open(pic_fp, 'wb')
+                img_writer.write(base64.decodestring(msg_j[key]['img']))
+                img_writer.close()
+                sql = 'insert into search_nmr (mol_id,type,cas,path,width,height) values (%s,%s,%s,%s,%s,%s)'
+                self.db_dict.execute(sql, mol_id, itype, cas, relative_path, msg_j[key]['width'], msg_j[key]['height'])
+            except Exception, e:
+                logging.error(u"处理mol_id:%s key:%s 出错", mol_id, key)
+                logging.error(traceback.format_exc())
+            
+            
     
     def import_nmr_pic_thread(self):
         logging.info(u'启动字典数据写入线程')
@@ -63,6 +84,14 @@ class NmrPicAgent(object):
         pic_dir = pic_path[0:6]
         pic_dir = '%s/%s/%s_%s.png' % (pic_dir[0:3], pic_dir[3:6], mol_id, ftype)
         return pic_dir
+    
+    def delete_file(self, mol_id, fp):
+        logging.info(u'删除mol_id:%s 文件:%s', mol_id, fp)
+        try:
+            if os.path.exists(fp):
+                os.remove(fp)
+        except Exception:
+            pass
 
         
 if __name__ == '__main__':
@@ -81,5 +110,6 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     npa = NmrPicAgent()
-    npa.import_nmr_pic()
+    npa.import_nmr_pic_thread()
+    # npa.import_nmr_pic()
     logging.info(u'程序运行完成')

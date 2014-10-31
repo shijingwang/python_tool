@@ -33,11 +33,13 @@ class DictUtil(DictCompound):
         # self.redis_server.lpush(CK.R_SDF_IMPORT, '{"file_key":"143s23sdsre132141343d123", "code":"1234", "file_path":"/home/kulen/Documents/xili_data/Sample_utf8.sdf"}')
     
     def import_table_data(self):
-        sql = 'select * from dic_source_data where has_dispose=0 order by id desc'
+        # 加上limit语句，防止一次加载过多数据
+        sql = 'select * from dic_source_data where has_dispose=0 order by id desc limit 100'
         rs = self.db_dict_source.query(sql)
         logging.info(u"导入数据量为:%s", len(rs))
         for r in rs:
             try:
+                logging.info(u'处理id:%s cas:%s 操作:%s 的数据', r['id'], r['cas_no'], r['write_type'])
                 # logging.info(u'处理id:%s cas_no:%s的记录', r['id'], r['cas_no'])
                 if r['cas_no'] and not self.cu.cas_check(r['cas_no']):
                     logging.info(u'CAS号:%s 校验失败', r['cas_no'])
@@ -49,6 +51,7 @@ class DictUtil(DictCompound):
                     self.extract_mol_data(r)
                 data_dict = {'name_en':r['name_en'], 'name_en_alias':r['name_en_alias'], 'name_cn':r['name_cn'], 'name_cn_alias':r['name_cn_alias'], 'cas_no':r['cas_no']}
                 data_dict['mol'] = r['mol']
+                data_dict['source_id'] = r['id']
                 # 确定数据更新方式　1--对数据进行写入 2--对字典数据进行修正
                 if r['write_type'] == 1:
                     data_dict['source'] = 'spider'
@@ -74,7 +77,7 @@ class DictUtil(DictCompound):
             c = c % r['smiles']
             result = os.popen(c).read().replace('\r', '').replace('\n', '').strip()
             if not result:
-                raise Exception(555, '无法由InChI生成smile')
+                raise Exception(555, '无法由smile生成inchi')
             r['inchi'] = result
         if not r['inchi'].startswith('InChI='):
             r['inchi'] = 'InChI=' + r['inchi']
@@ -82,7 +85,7 @@ class DictUtil(DictCompound):
         c = c % r['inchi']
         result = os.popen(c).read().replace('\r', '').replace('\n', '').strip()
         if not result:
-            raise Exception(555, 'InChI格式不正确')
+            raise Exception(555, 'InChI格式不正确, 无法转为smile')
         c = 'echo "%s" | babel -iinchi -omol --gen2d'
         c = c % r['inchi']
         # logging.info(u'执行生成mol命令:%s', c)

@@ -21,9 +21,11 @@ class DictSourceImport(object):
     
     # Zinc数据导入
     def readZincCsv(self):
-        f = open('/home/kulen/Documents/zinc汇总数据.csv', 'rb')
+        f = open('/home/kulen/Documents/zinc_data.csv', 'rb')
         reader = csv.reader(f)
         counter = 0
+        isql = 'insert into dic_source_data (name_en,write_type,data_type,cas_no,smiles,refer1) values (%s,1,1,%s,%s,%s)'
+        isqls = [] 
         for row in reader:
             counter += 1
             if counter == 1:
@@ -32,10 +34,13 @@ class DictSourceImport(object):
             if not row[1] or len(row[1].strip()) > 0:
                 cas = row[1].replace('`', '')
             logging.info("%s %s %s %s", row[0], cas, row[2], row[3])
-            sql = 'insert into dic_source_data (name_en,write_type,data_type,cas_no,smiles) values (%s,1,1,%s,%s)'
-            self.db_dict_source.insert(sql, row[3], cas, row[2])
-            if counter >= 12:
-                break
+            isqls.append((row[3], cas, row[2], row[0]))
+            if len(isqls) > 1000:
+                self.db_dict_source.insertmany(isql, isqls)
+                isqls = []
+        if len(isql) > 0:
+            self.db_dict_source.insertmany(isql, isqls)
+            isqls = []
         logging.info("完成数据导入")
     
     # 字典错误数据修正，导入mol文件
@@ -72,6 +77,6 @@ if __name__ == '__main__':
     
     dsi = DictSourceImport()
     # dsi.readCsv()
-    dsi.readMolFile()
+    dsi.readZincCsv()
     # dsi.readFixCsv()
     logging.info(u'程序执行完成!')
