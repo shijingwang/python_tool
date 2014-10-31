@@ -3,7 +3,6 @@ import json, base64
 import logging
 import os, sys, time
 import threading
-import signal
 from tornado.options import define, options
 import traceback
 try:
@@ -23,7 +22,7 @@ class DictWorkerV2(DictCompound):
         if not os.path.exists(dict_conf.worker_bitmapdir):
             os.makedirs(dict_conf.worker_bitmapdir)
         self.db_dict = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_WORKER)
-        signal.signal(signal.SIGALRM, self.__getattribute__("handler"))
+        self.db_dict_source = ConUtil.connect_mysql(dict_conf.MYSQL_DICT_SOURCE)
         sql = 'select fpdef from moldb_fpdef'
         rs = self.db_dict.query(sql)
         for r in rs:
@@ -111,6 +110,9 @@ class DictWorkerV2(DictCompound):
             logging.info(u"写入新数据,mol_id:%s!", mol_id)
             # logging.info(sql)
             self.db_dict.insert(sql, *params)
+            
+            sql = 'update dic_source_data set mol_id=%s where id=%s'
+            self.db_dict_source.execute(sql, mol_id, data_dict['source_id'])
         
         # 防止数据更新, 带来的冲击与影响
         elif wtype == 'update':
