@@ -54,7 +54,7 @@ class Extract(object):
         if not os.path.exists(check_dir):
             os.makedirs(check_dir)
         fileName = source
-        logoName = "D:/logo/mark_logov3/logov3_60.png"
+        logoName = settings.MARK_LOGO_IMG
         logging.info(u'图片打水印:%s', fileName)
         im = Image.open(fileName)
         mark = Image.open(logoName)
