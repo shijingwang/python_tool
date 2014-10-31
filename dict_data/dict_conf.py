@@ -34,3 +34,5 @@ scalingfactor = 0.22
 mol2psopt = "--rotate=auto3Donly --hydrogenonmethyl=off"
 # REDIS_SERVER = {'host':'127.0.0.1', 'port':6380, 'password':'molbase1010'}
 REDIS_SERVER = {'host':'192.168.0.124', 'port':6379, 'password':''}
+# 解决公司环境无法直接连接到亚马逊Redis, 对数据进行相应的中转
+TRANSFER_REDIS_SERVER = {'host':'127.0.0.1', 'port':6380, 'password':'molbase1010'}

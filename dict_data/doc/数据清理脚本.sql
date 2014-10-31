@@ -77,8 +77,18 @@ update dic_source_data a, z_dic_molbase.search_moldata b set a.mol_id=b.mol_id w
 
 
 -- 数据表修正sql
-ALTER TABLE `molbase_check`.`search_nmr` DROP INDEX `unique_cas`;
-ALTER TABLE `molbase_check`.`search_nmr` ADD UNIQUE INDEX `unique_cas` (`mol_id` ASC, `type` ASC);
+ALTER TABLE `search_nmr` DROP INDEX `unique_cas`;
+ALTER TABLE `search_nmr` ADD UNIQUE INDEX `unique_cas` (`mol_id` ASC, `type` ASC);
+
+-- dic_source_data表结构更改
+ALTER TABLE `dic_cas`.`dic_source_data` 
+CHANGE COLUMN `name_en` `name_en` VARCHAR(255) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL ,
+CHANGE COLUMN `name_en_alias` `name_en_alias` VARCHAR(2000) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL ,
+CHANGE COLUMN `name_cn` `name_cn` VARCHAR(255) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL ,
+CHANGE COLUMN `name_cn_alias` `name_cn_alias` VARCHAR(2000) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL ,
+ADD COLUMN `refer1` VARCHAR(128) NULL AFTER `mol`,
+ADD COLUMN `refer2` VARCHAR(128) NULL AFTER `refer1`,
+ADD COLUMN `refer3` VARCHAR(128) NULL AFTER `refer2`;
 
 
 

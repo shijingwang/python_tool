@@ -1,9 +1,14 @@
-生产程序部署目录
+Worker生产程序部署目录
 122.226.111.3:/usr/local/python_tool/dict_data_prod
+cd /usr/local/python_tool/dict_data_prod
 程序启动指令
 nohup python2.7 dict_util.py --logfile=/home/log/dict/util_prod.log >/dev/null &
 nohup python2.7 dict_worker_v2.py --logfile=/home/log/dict/workerv2_prod.log>/dev/null &
 
+
+Agent 生产环境的部署目录(54.183.227.192(172.31.16.176)):
+cd /opt/molbase.inc/dic_do/python_tool/dict_data
+nohup python2.7 dict_agent.py --logfile=/opt/molbase.inc/log/dict_agent.log > /dev/null &
 
 
 
