@@ -18,7 +18,7 @@ from nmr_local.nmr_extract import Nmr
 class NmrPicWorker(object):
     
     def __init__(self):
-        self.redis_server = ConUtil.connect_redis(dict_conf.REDIS_SERVER)
+        self.redis_server = ConUtil.connect_redis(dict_conf.TRANSFER_REDIS_SERVER)
         self.nmr = Nmr()
 
     def nmr_create_task(self):
@@ -185,16 +185,16 @@ class NmrPicWorker(object):
                     layer.paste(mark, (x, y))
                     j += 1
                 i += 1
-    
-        if imWidth > 960:
-            nHeight = (imHeight * 960) / imWidth
-            layer = layer.resize((960, nHeight))
-            im = im.resize((960, nHeight))
         
-        Image.composite(layer, im, layer).save(target, quality=100)
+        if imWidth > 880:
+            nHeight = (imHeight * 880) / imWidth
+            layer = layer.resize((880, nHeight))
+            im = im.resize((880, nHeight), Image.ANTIALIAS)
+
+        Image.composite(layer, im, layer).save(target, quality=80)
         logging.info(u'图片完成打水印:%s', fileName)
     
-        
+    
 if __name__ == '__main__':
 
     reload(sys)
@@ -213,4 +213,5 @@ if __name__ == '__main__':
     npw = NmrPicWorker()
     # npw.nmr_create_task()
     npw.nmr_create_task_thread()
+    # npw.resize_pic()
     logging.info(u'程序运行完成')
