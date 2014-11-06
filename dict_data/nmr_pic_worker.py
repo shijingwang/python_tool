@@ -18,7 +18,7 @@ from nmr_local.nmr_extract import Nmr
 class NmrPicWorker(object):
     
     def __init__(self):
-        self.redis_server = ConUtil.connect_redis(dict_conf.REDIS_SERVER)
+        self.redis_server = ConUtil.connect_redis(dict_conf.TRANSFER_REDIS_SERVER)
         self.nmr = Nmr()
 
     def nmr_create_task(self):
@@ -88,6 +88,8 @@ class NmrPicWorker(object):
             pic_dict = {'1h':m_pic_1h, '13c':m_pic_13c}
             for key in pic_dict:
                 try:
+                    if not os.path.exists(pic_dict[key]):
+                        continue
                     img_reader = open(pic_dict[key], 'rb')
                     v_img = img_reader.read()
                     img_reader.close()
@@ -183,16 +185,16 @@ class NmrPicWorker(object):
                     layer.paste(mark, (x, y))
                     j += 1
                 i += 1
-    
-        if imWidth > 960:
-            nHeight = (imHeight * 960) / imWidth
-            layer = layer.resize((960, nHeight))
-            im = im.resize((960, nHeight))
         
+        if imWidth > 880:
+            nHeight = (imHeight * 880) / imWidth
+            layer = layer.resize((880, nHeight))
+            im = im.resize((880, nHeight), Image.ANTIALIAS)
+
         Image.composite(layer, im, layer).save(target, quality=80)
         logging.info(u'图片完成打水印:%s', fileName)
     
-        
+    
 if __name__ == '__main__':
 
     reload(sys)
@@ -209,6 +211,7 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     npw = NmrPicWorker()
-    #npw.nmr_create_task()
+    # npw.nmr_create_task()
     npw.nmr_create_task_thread()
+    # npw.resize_pic()
     logging.info(u'程序运行完成')

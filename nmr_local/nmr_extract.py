@@ -8,6 +8,7 @@ import win32api
 import os
 import time
 import threading
+from dict_data import dict_conf
 
 def find_idxSubHandle(pHandle, winClass, index=0):
     """
@@ -82,11 +83,14 @@ class Nmr(object):
         """打开Mol文件"""
         Mhandle, confirmBTN_handle = self.file_menu_command('open')
         handle = find_subHandle(Mhandle, [("ComboBoxEx32", 0), ("ComboBox", 0), ("Edit", 0)])
+        TYPE_handle = find_subHandle(Mhandle, [("ComboBox", 1)])
         logging.info(u"打开按钮Handle:%x", handle)
+        win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 13, 0)
+        time.sleep(0.2)
         if win32api.SendMessage(handle, win32con.WM_SETTEXT, 0, os.path.abspath(molfile)) != 1:
             raise Exception("File opening path set failed")
         win32api.SendMessage(Mhandle, win32con.WM_COMMAND, 1, confirmBTN_handle)  
-        time.sleep(0.5)
+        time.sleep(0.8)
         MOL_handle = find_subHandle(self.Mhandle, [("MDIClient", 0), ("CSWDocument", 0)])
         
         win32gui.SetForegroundWindow(MOL_handle)  
@@ -175,8 +179,8 @@ class Nmr(object):
         self.Mhandle = win32gui.FindWindow("CSWFrame", None)
         if self.Mhandle != 0:
             return
-        win32api.ShellExecute(0, 'open', u'"C:\\Program Files (x86)\\CambridgeSoft\\ChemOffice2010\\ChemDraw\\ChemDraw.exe"', '','',1)
-        time.sleep(10)
+        win32api.ShellExecute(0, 'open', u'"%s"' % dict_conf.chemdraw_app, '','',1)
+        time.sleep(6)
         self.initial_data()
     
     def initial_data(self):
@@ -206,7 +210,7 @@ if __name__ == '__main__':
     #nmr.find_stop()
     #nmr.startup_app()
     
-    nmr.open_mol("C:\\Users\\Administrator\\Desktop\\23672-07-3.mol")
+    nmr.open_mol("D:\\molfile\\1748327.mol")
     """
     nmr.generate_1h_image("C:\\Users\\Administrator\\Desktop\\cp_1h.png")
     time.sleep(1)
