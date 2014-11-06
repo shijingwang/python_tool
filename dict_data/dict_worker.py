@@ -378,7 +378,7 @@ class DictWorker(object):
     def update_stat_table_fix(self):
         fix_mol_ids = [45]
         fix_mol_ids = str(fix_mol_ids).replace('L', '')
-        #print fix_mol_ids
+        # print fix_mol_ids
         sql = 'select * from search_molstruc where mol_id in (%s)' % fix_mol_ids[1:len(fix_mol_ids) - 1]
         rs = self.db_dict.query(sql)
         for r in rs:
