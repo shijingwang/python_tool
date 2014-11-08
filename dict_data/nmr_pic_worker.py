@@ -33,6 +33,8 @@ class NmrPicWorker(object):
         f = file(mol_file_path, 'w')
         f.write(msg_j['mol'])
         f.close()
+        if not os.path.exists(mol_file_path):
+            return
         self.generate_pic(msg_j['mol_id'], msg_j['cas_no'], mol_file_path)
         
     

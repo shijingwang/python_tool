@@ -86,7 +86,8 @@ class Nmr(object):
         TYPE_handle = find_subHandle(Mhandle, [("ComboBox", 1)])
         logging.info(u"打开按钮Handle:%x", handle)
         win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 13, 0)
-        time.sleep(0.2)
+        win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 13, 0)
+        time.sleep(0.5)
         if win32api.SendMessage(handle, win32con.WM_SETTEXT, 0, os.path.abspath(molfile)) != 1:
             raise Exception("File opening path set failed")
         win32api.SendMessage(Mhandle, win32con.WM_COMMAND, 1, confirmBTN_handle)  
@@ -125,7 +126,8 @@ class Nmr(object):
         TYPE_handle = find_subHandle(Mhandle, [("ComboBox", 1)])
           
         win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 16, 0)
-        time.sleep(0.2)
+        win32api.SendMessage(TYPE_handle, win32con.CB_SETCURSEL, 16, 0)
+        time.sleep(0.4)
         if win32api.SendMessage(EDIT_handle, win32con.WM_SETTEXT, 0, os.path.abspath(filePath)) != 1:
             raise Exception("Set file opening path failed")
         time.sleep(0.2)
@@ -180,7 +182,7 @@ class Nmr(object):
         if self.Mhandle != 0:
             return
         win32api.ShellExecute(0, 'open', u'"%s"' % dict_conf.chemdraw_app, '','',1)
-        time.sleep(6)
+        time.sleep(10)
         self.initial_data()
     
     def initial_data(self):
@@ -210,13 +212,13 @@ if __name__ == '__main__':
     #nmr.find_stop()
     #nmr.startup_app()
     
-    nmr.open_mol("D:\\molfile\\1748327.mol")
-    """
+    nmr.open_mol("D:\\molfile\\1694271.mol")
     nmr.generate_1h_image("C:\\Users\\Administrator\\Desktop\\cp_1h.png")
+    '''
     time.sleep(1)
     nmr.generate_13c_image("C:\\Users\\Administrator\\Desktop\\cp_13c.png")
     time.sleep(1)
     nmr.close_mol()
     time.sleep(1)
-    """
+    '''
     logging.info(u'程序运行完成')
