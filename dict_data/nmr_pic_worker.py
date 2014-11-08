@@ -131,7 +131,9 @@ class NmrPicWorker(object):
 
     def delete_file(self, fp):
         try:
+            fp = fp.replace("/", "\\")
             if os.path.exists(fp):
+                logging.info(u"删除文件:%s", fp)
                 os.remove(fp)
         except Exception:
             pass
@@ -192,6 +194,7 @@ class NmrPicWorker(object):
             im = im.resize((880, nHeight), Image.ANTIALIAS)
 
         Image.composite(layer, im, layer).save(target, quality=80)
+        im.close()
         logging.info(u'图片完成打水印:%s', fileName)
     
     
@@ -213,5 +216,6 @@ if __name__ == '__main__':
     npw = NmrPicWorker()
     # npw.nmr_create_task()
     npw.nmr_create_task_thread()
+    # os.remove("C:/ChemDraw/mark_44-1h.png");
     # npw.resize_pic()
     logging.info(u'程序运行完成')
