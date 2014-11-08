@@ -41,6 +41,7 @@ class NmrPicAgent(object):
                 for r in rs:
                     del_file_path = dict_conf.agent_nmr_picdir + r['path']
                     if r['type'] == itype:
+                        logging.info("mol_id:%s path:%s", r['mol_id'], r['path'])
                         sql = 'delete from search_nmr where id=%s' % r['id']
                         logging.info(u'执行的sql:%s' , sql)
                         self.db_dict.execute(sql)
@@ -59,8 +60,6 @@ class NmrPicAgent(object):
             except Exception, e:
                 logging.error(u"处理mol_id:%s key:%s 出错", mol_id, key)
                 logging.error(traceback.format_exc())
-            
-            
     
     def import_nmr_pic_thread(self):
         logging.info(u'启动字典数据写入线程')

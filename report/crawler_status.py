@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 import datetime
 import time
+import signal
 try:
     import python_tool
 except ImportError:
@@ -21,6 +22,7 @@ class Report(object):
     def __init__(self):
         self.db_spider_data = ConUtil.connect_mysql(settings.MYSQL_SPIDER_DATA)
         self.db_spider = ConUtil.connect_mysql(settings.MYSQL_SPIDER)
+        signal.signal(signal.SIGALRM, self.__getattribute__("handler"))
         
     def statistic_db(self, start_time, stop_time):
         sql = "select distinct(site_id) as site_id from compound_product"
@@ -86,28 +88,33 @@ class Report(object):
             else:
                 self.file_list.append(path + '/' + i)
     
+    def handler(self, signum, frame):
+        raise Exception(u"Process Timeout")
+    
     def send_mail(self, email):
         # 加邮件头
-        msg = MIMEMultipart()
-
-        # 构造附件1
-        att1 = MIMEText(open('/tmp/report.csv', 'rb').read(), 'base64', 'utf-8')
-        att1["Content-Type"] = 'application/octet-stream'
-        att1["Content-Disposition"] = 'attachment; filename="report.csv"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
-        msg.attach(att1)
-        msg['to'] = email
-        msg['from'] = 'guoqiang.zhang@molbase.com'
-        msg['subject'] = datetime.datetime.now().strftime('%Y-%m-%d') + u'抓取进度'
-        # 发送邮件
-        try:
-            server = smtplib.SMTP()
-            server.connect(settings.MAIL_SEND_SERVER)
-            server.login(settings.MAIL_USER, settings.MAIL_PASSWORD)  # XXX为用户名，XXXXX为密码
-            server.sendmail(msg['from'], msg['to'], msg.as_string())
-            server.quit()
-            logging.info("邮件发送成功")
-        except Exception, e:  
-            logging.error("邮件发送失败,%s", e)
+        for i in range(0, 20):
+            try:
+                signal.alarm(10)
+                msg = MIMEMultipart()
+                # 构造附件1
+                att1 = MIMEText(open('/tmp/report.csv', 'rb').read(), 'base64', 'utf-8')
+                att1["Content-Type"] = 'application/octet-stream'
+                att1["Content-Disposition"] = 'attachment; filename="report.csv"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
+                msg.attach(att1)
+                msg['to'] = email
+                msg['from'] = 'guoqiang.zhang@molbase.com'
+                msg['subject'] = datetime.datetime.now().strftime('%Y-%m-%d') + u'抓取进度'
+                # 发送邮件
+                server = smtplib.SMTP()
+                server.connect(settings.MAIL_SEND_SERVER)
+                server.login(settings.MAIL_USER, settings.MAIL_PASSWORD)  # XXX为用户名，XXXXX为密码
+                server.sendmail(msg['from'], msg['to'], msg.as_string())
+                server.quit()
+                logging.info("第%s次邮件发送成功", i + 1)
+                break
+            except Exception, e:  
+                logging.error("邮件发送失败,%s", e)
 
 if __name__ == '__main__':
     reload(sys)

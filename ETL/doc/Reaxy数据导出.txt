@@ -1,0 +1,5 @@
+2014-10-27 数据导出
+
+设置mol_id的sql语句
+update dic_cas.dic_source_data a, spiderv2_data.spider_query_data b set a.mol_id=b.refer1 where b.name='dict' and a.cas_no = b.query;
+

@@ -18,10 +18,9 @@ class ReaxyExtract(object):
     def __init__(self):
         self.db_spider_data = ConUtil.connect_mysql(settings.MYSQL_SPIDER_DATA)
         self.db_dict_source = ConUtil.connect_mysql(settings.MYSQL_DICT_SOURCE)
-        pass
     
     def extract_moldata(self):
-        sql = 'select * from compound_product where site_id=2'
+        sql = 'select * from compound_product where id>7033068 and site_id=2'
         logging.info(u"sql语句为:%s", sql)
         cps = self.db_spider_data.query(sql)
         logging.info(u"查询出来的记录数为:%s", len(cps))
@@ -34,8 +33,8 @@ class ReaxyExtract(object):
             if 'mol' not in jv or len(jv['mol'].strip()) < 10:
                 logging.warn("id:%s cas:%s 无mol数据", cp['id'], cp['cas'])
                 continue
-            sql = 'insert into dic_source_data (has_dispose,name_en,write_type,data_type,cas_no,mol) values (1, %s, 1, 2, %s, %s)'
-            self.db_dict_source.execute(sql, cp['name'], cp['cas'], jv['mol'])
+            sql = 'insert into dic_source_data (has_dispose,name_en,name_en_alias,write_type,data_type,cas_no,mol) values (1, %s, %s, 1, 2, %s, %s)'
+            self.db_dict_source.execute(sql, cp['name'], jv.get('Chemical Names and Synonyms', ''), cp['cas'], jv['mol'])
     
     def update_molid(self):
         sql = "select refer1,query from spider_query_data where name='dict'"
@@ -52,6 +51,30 @@ class ReaxyExtract(object):
                     logging.info(u'更新cas:%s mol_id:%s', tr['cas_no'], r['refer1'])
                     self.db_dict_source.execute(sql, r['refer1'], tr['cas_no'])
                     break
+    
+    def extract_mol(self):
+        sql = "select id,cas_no,name_en,mol from dic_cas.dic_source_data where write_type=1 and name_en is null"
+        rs = self.db_dict_source.query(sql)
+        for r in rs:
+            try:
+                f = file('/home/kulen/molfile/reaxy/%s.mol' % r['cas_no'], 'w')  
+                f.write(r['mol'])  
+                f.close()
+            except Exception, e:
+                logging.info(e);
+
+    def update_name(self):
+        f = open('/home/kulen/Documents/修正后英文名称.csv', 'rb')
+        reader = csv.reader(f)
+        counter = 0
+        for row in reader:
+            counter += 1
+            if counter == 1:
+                continue
+            logging.info(u'将id:%s 名称改为:%s', row[0], row[3])
+            sql = 'update dic_source_data set name_en=%s where id=%s'
+            self.db_dict_source.execute(sql, row[3], row[0])
+        logging.info("完成数据导入")
 
 if __name__ == '__main__':
 
@@ -70,5 +93,8 @@ if __name__ == '__main__':
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
     re = ReaxyExtract()
-    re.update_molid()
+    re.extract_moldata()
+    # re.update_molid()
+    # re.extract_mol()
+    # re.update_name()
     logging.info(u'程序运行完成')
