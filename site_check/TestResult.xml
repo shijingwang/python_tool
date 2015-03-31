@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!--This file represents the results of running a test suite-->
+<test-results name="D:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\MolbaseOnlineAutoTest\bin\Debug\MolbaseOnlineAutoTest.dll" total="84" errors="1" failures="2" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2015-03-30" time="15:02:23">
+  <environment nunit-version="2.6.3.13283" clr-version="2.0.50727.4927" os-version="Microsoft Windows NT 6.1.7600.0" platform="Win32NT" cwd="D:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\NUnit-2.6.3\NUnit-2.6.3\bin" machine-name="USER-PC" user="user" user-domain="user-PC" />
+  <culture-info current-culture="zh-CN" current-uiculture="zh-CN" />
+  <test-suite type="Assembly" name="D:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\MolbaseOnlineAutoTest\bin\Debug\MolbaseOnlineAutoTest.dll" executed="True" result="Failure" success="False" time="386.798" asserts="0">
+    <results>
+      <test-suite type="Namespace" name="MolbaseOnlineAutoTest" executed="True" result="Failure" success="False" time="386.785" asserts="0">
+        <results>
+          <test-suite type="TestFixture" name="Mall" executed="True" result="Inconclusive" success="False" time="0.007" asserts="0" />
+          <test-suite type="TestFixture" name="WWW" executed="True" result="Failure" success="False" time="386.769" asserts="0">
+            <results>
+              <test-suite type="ParameterizedTest" name="online001_主站游客" executed="True" result="Success" success="True" time="7.383" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online001_主站游客(&quot;/zh&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="3.456" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online001_主站游客(&quot;/zh&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="1.326" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online001_主站游客(&quot;/en&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="1.360" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online001_主站游客(&quot;/en&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="1.221" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online002_Cas号搜索" executed="True" result="Success" success="True" time="39.203" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;19315-93-6&quot;)" executed="True" result="Success" success="True" time="4.053" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;62-73-7&quot;)" executed="True" result="Success" success="True" time="2.129" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;87-09-2&quot;)" executed="True" result="Success" success="True" time="2.373" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;1111-22-3&quot;)" executed="True" result="Success" success="True" time="1.538" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;19315-93-6&quot;)" executed="True" result="Success" success="True" time="2.824" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;62-73-7&quot;)" executed="True" result="Success" success="True" time="1.947" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;87-09-2&quot;)" executed="True" result="Success" success="True" time="2.101" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;1111-22-3&quot;)" executed="True" result="Success" success="True" time="1.286" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;19315-93-6&quot;)" executed="True" result="Success" success="True" time="4.211" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;62-73-7&quot;)" executed="True" result="Success" success="True" time="1.564" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;87-09-2&quot;)" executed="True" result="Success" success="True" time="4.158" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;1111-22-3&quot;)" executed="True" result="Success" success="True" time="1.902" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;19315-93-6&quot;)" executed="True" result="Success" success="True" time="2.571" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;62-73-7&quot;)" executed="True" result="Success" success="True" time="1.985" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;87-09-2&quot;)" executed="True" result="Success" success="True" time="2.787" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online002_Cas号搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;1111-22-3&quot;)" executed="True" result="Success" success="True" time="1.706" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online003_关键字搜索" executed="True" result="Success" success="True" time="121.758" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;\x4E8C\x6C27\x5316\x78B3&quot;)" executed="True" result="Success" success="True" time="7.007" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;methy&quot;)" executed="True" result="Success" success="True" time="11.126" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;acid&quot;)" executed="True" result="Success" success="True" time="11.740" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;\x4F60\x597D\x4E2D\x56FD&quot;)" executed="True" result="Success" success="True" time="1.375" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.com&quot;,&quot;\x6C34&quot;)" executed="True" result="Success" success="True" time="8.741" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;\x4E8C\x6C27\x5316\x78B3&quot;)" executed="True" result="Success" success="True" time="6.326" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;methy&quot;)" executed="True" result="Success" success="True" time="9.179" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;acid&quot;)" executed="True" result="Success" success="True" time="14.477" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;\x4F60\x597D\x4E2D\x56FD&quot;)" executed="True" result="Success" success="True" time="1.261" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/zh&quot;,&quot;.cn&quot;,&quot;\x6C34&quot;)" executed="True" result="Success" success="True" time="10.634" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;\x4E8C\x6C27\x5316\x78B3&quot;)" executed="True" result="Success" success="True" time="0.010" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;methy&quot;)" executed="True" result="Success" success="True" time="9.389" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;acid&quot;)" executed="True" result="Success" success="True" time="11.160" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;\x4F60\x597D\x4E2D\x56FD&quot;)" executed="True" result="Success" success="True" time="0.008" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.com&quot;,&quot;\x6C34&quot;)" executed="True" result="Success" success="True" time="0.002" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;\x4E8C\x6C27\x5316\x78B3&quot;)" executed="True" result="Success" success="True" time="0.002" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;methy&quot;)" executed="True" result="Success" success="True" time="9.833" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;acid&quot;)" executed="True" result="Success" success="True" time="9.385" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;\x4F60\x597D\x4E2D\x56FD&quot;)" executed="True" result="Success" success="True" time="0.013" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online003_关键字搜索(&quot;/en&quot;,&quot;.cn&quot;,&quot;\x6C34&quot;)" executed="True" result="Success" success="True" time="0.002" asserts="0" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online004_结构式三种搜索" executed="True" result="Failure" success="False" time="87.518" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online004_结构式三种搜索(&quot;/zh&quot;,&quot;.com&quot;,3074)" executed="True" result="Success" success="True" time="39.308" asserts="3" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online004_结构式三种搜索(&quot;/zh&quot;,&quot;.cn&quot;,3074)" executed="True" result="Success" success="True" time="39.874" asserts="3" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online004_结构式三种搜索(&quot;/en&quot;,&quot;.com&quot;,3074)" executed="True" result="Failure" success="False" time="4.189" asserts="1">
+                    <failure>
+                      <message><![CDATA[  Expected: True
+  But was:  False
+]]></message>
+                      <stack-trace><![CDATA[在 MolbaseOnlineAutoTest.WWW.online004_结构式三种搜索(String language, String domain, Int32 mol_id) 位置 E:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\MolbaseOnlineAutoTest\autoTest.cs:行号 196
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online004_结构式三种搜索(&quot;/en&quot;,&quot;.cn&quot;,3074)" executed="True" result="Failure" success="False" time="4.080" asserts="1">
+                    <failure>
+                      <message><![CDATA[  Expected: True
+  But was:  False
+]]></message>
+                      <stack-trace><![CDATA[在 MolbaseOnlineAutoTest.WWW.online004_结构式三种搜索(String language, String domain, Int32 mol_id) 位置 E:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\MolbaseOnlineAutoTest\autoTest.cs:行号 196
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online005_批量搜索" executed="True" result="Success" success="True" time="11.796" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online005_批量搜索(&quot;/zh&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="3.574" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online005_批量搜索(&quot;/zh&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="2.802" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online005_批量搜索(&quot;/en&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="2.596" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online005_批量搜索(&quot;/en&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="2.818" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online006_供应商列表页" executed="True" result="Success" success="True" time="5.222" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online006_供应商列表页(&quot;/zh&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="1.361" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online006_供应商列表页(&quot;/zh&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="1.311" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online006_供应商列表页(&quot;/en&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="1.254" asserts="0" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online006_供应商列表页(&quot;/en&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="1.290" asserts="0" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online007_Cas号列表页面" executed="True" result="Success" success="True" time="4.521" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online007_Cas号列表页面(&quot;/zh&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="1.693" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online007_Cas号列表页面(&quot;/zh&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="0.844" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online007_Cas号列表页面(&quot;/en&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="1.148" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online007_Cas号列表页面(&quot;/en&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="0.830" asserts="2" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online008_分子式列表页面" executed="True" result="Success" success="True" time="5.900" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online008_分子式列表页面(&quot;/zh&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="2.801" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online008_分子式列表页面(&quot;/zh&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="0.702" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online008_分子式列表页面(&quot;/en&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="1.491" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online008_分子式列表页面(&quot;/en&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="0.900" asserts="2" />
+                </results>
+              </test-suite>
+              <test-suite type="ParameterizedTest" name="online009_产品列表页面" executed="True" result="Success" success="True" time="3.735" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online009_产品列表页面(&quot;/zh&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="0.958" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online009_产品列表页面(&quot;/zh&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="1.052" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online009_产品列表页面(&quot;/en&quot;,&quot;.com&quot;)" executed="True" result="Success" success="True" time="0.825" asserts="2" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online009_产品列表页面(&quot;/en&quot;,&quot;.cn&quot;)" executed="True" result="Success" success="True" time="0.895" asserts="2" />
+                </results>
+              </test-suite>
+              <test-case name="MolbaseOnlineAutoTest.WWW.online010_公司档案" executed="True" result="Success" success="True" time="0.006" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online011_公司相册" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online012_公司联系方式页面" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online013_搜索本店" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online014_词典总览页" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online015_词典物化性质标签" executed="True" result="Success" success="True" time="0.035" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online016_词典上下游与合成路线" executed="True" result="Success" success="True" time="0.004" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online017_MSDS" executed="True" result="Success" success="True" time="0.003" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online018_注册" executed="True" result="Success" success="True" time="0.003" asserts="0" />
+              <test-suite type="ParameterizedTest" name="online019_登录" executed="True" result="Failure" success="False" time="94.290" asserts="0">
+                <results>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/zh&quot;,&quot;.com&quot;,&quot;molbasebuyer&quot;)" executed="True" result="Success" success="True" time="3.858" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/zh&quot;,&quot;.com&quot;,&quot;molbasesupplier&quot;)" executed="True" result="Success" success="True" time="5.055" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/zh&quot;,&quot;.cn&quot;,&quot;molbasebuyer&quot;)" executed="True" result="Success" success="True" time="3.020" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/zh&quot;,&quot;.cn&quot;,&quot;molbasesupplier&quot;)" executed="True" result="Error" success="False" time="61.475" asserts="0">
+                    <failure>
+                      <message><![CDATA[OpenQA.Selenium.WebDriverException : The HTTP request to the remote WebDriver server for URL http://localhost:15036/session/cbc7d18266754d5d60fe84ee28e4d6cb/element/0.7516367854550481-4/click timed out after 60 seconds.
+  ----> System.Net.WebException : 操作超时]]></message>
+                      <stack-trace><![CDATA[在 OpenQA.Selenium.Remote.HttpCommandExecutor.CreateResponse(WebRequest request)
+在 OpenQA.Selenium.Remote.DriverServiceCommandExecutor.Execute(Command commandToExecute)
+在 OpenQA.Selenium.Remote.RemoteWebDriver.Execute(String driverCommandToExecute, Dictionary`2 parameters)
+在 MolbaseOnlineAutoTest.WWW.online019_登录(String language, String domain, String user) 位置 E:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\MolbaseOnlineAutoTest\autoTest.cs:行号 414
+--WebException
+在 System.Net.HttpWebRequest.GetResponse()
+在 OpenQA.Selenium.Remote.HttpCommandExecutor.CreateResponse(WebRequest request)
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/en&quot;,&quot;.com&quot;,&quot;molbasebuyer&quot;)" executed="True" result="Success" success="True" time="7.184" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/en&quot;,&quot;.com&quot;,&quot;molbasesupplier&quot;)" executed="True" result="Success" success="True" time="4.775" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/en&quot;,&quot;.cn&quot;,&quot;molbasebuyer&quot;)" executed="True" result="Success" success="True" time="5.803" asserts="1" />
+                  <test-case name="MolbaseOnlineAutoTest.WWW.online019_登录(&quot;/en&quot;,&quot;.cn&quot;,&quot;molbasesupplier&quot;)" executed="True" result="Success" success="True" time="3.091" asserts="1" />
+                </results>
+              </test-suite>
+              <test-case name="MolbaseOnlineAutoTest.WWW.online020_询盘" executed="True" result="Success" success="True" time="0.013" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online021_供应商对询盘报价" executed="True" result="Success" success="True" time="0.006" asserts="0" />
+              <test-case name="MolbaseOnlineAutoTest.WWW.online022_供应商对询盘回复" executed="True" result="Success" success="True" time="0.005" asserts="0" />
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>
