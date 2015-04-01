@@ -10,10 +10,11 @@ import xml.sax
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
-import signal
 import datetime
 import sc_setting
 import traceback
+import sys
+import os
 from result_parse import ResultParse
 
 import logging
@@ -56,7 +57,7 @@ class SiteRunner(object):
     def start_check(self):
         width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
         height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
-        logging.info('屏幕分辨率:%s x %s', width, height)
+        logging.info(u'屏幕分辨率:%s x %s', width, height)
         # main_handle
         while True:
             self.m_handle = win32gui.FindWindow('WindowsForms10.Window.8.app.0.33c0d9d', None)
@@ -66,7 +67,7 @@ class SiteRunner(object):
                 time.sleep(10)
             else:
                 break
-        logging.info('程序主窗口句柄:%x', self.m_handle);
+        logging.info(u'程序主窗口句柄:%x', self.m_handle);
         win32gui.SetForegroundWindow(self.m_handle)  
         # mainframe_handle
         # self.mf_handle = find_subHandle(self.m_handle, [('WindowsForms10.Window.8.app.0.33c0d9d', 0)])
@@ -94,43 +95,59 @@ class SiteRunner(object):
         pass;
     
     def parse_xml(self):
-        # 创建一个 XMLReader
-        parser = xml.sax.make_parser()
-        # turn off namepsaces
-        parser.setFeature(xml.sax.handler.feature_namespaces, 0)
-        # 重写 ContextHandler
-        result_parse = ResultParse()
-        parser.setContentHandler(result_parse)
-        parser.parse("TestResult.xml")
-        # logging.info(Handler.test_result)
-        test_result = []
-        for key in result_parse.test_result:
-            logging.info(u"测试节点名称:%s", key)
-            keys = result_parse.test_result[key].keys() 
-            keys.sort()
-            for key1 in keys:
-                logging.info(u'测试组名称:%s', key1)
-                fail_result = []
-                for value in result_parse.test_result[key][key1]:
-                    if value['success'] != 'True':
-                        logging.info(u"name:%s result:%s msg:%s", value['name'], value['success'], value['msg'])
-                        fail_result.append(u'    测试用例:%s 未通过测试' % value['name'])
-                if len(fail_result) > 0:
-                    test_result.append(key)
-                    test_result.append('  ' + key1)
-                    test_result.extend(fail_result)
+        parse_pass = False
+        try:
+            parser = xml.sax.make_parser()
+            parser.setFeature(xml.sax.handler.feature_namespaces, 0)
+            result_parse = ResultParse()
+            parser.setContentHandler(result_parse)
+            parser.parse(sc_setting.test_result_path)
+            test_result = []
+            for key in result_parse.test_result:
+                logging.info(u"测试节点名称:%s", key)
+                keys = result_parse.test_result[key].keys() 
+                keys.sort()
+                for key1 in keys:
+                    logging.info(u'测试组名称:%s', key1)
+                    fail_result = []
+                    for value in result_parse.test_result[key][key1]:
+                        if value['success'] != 'True':
+                            logging.info(u"name:%s result:%s msg:%s", value['name'], value['success'], value['msg'])
+                            fail_result.append(u'    测试用例:%s 未通过测试' % value['name'])
+                    if len(fail_result) > 0:
+                        test_result.append(key)
+                        test_result.append('  ' + key1)
+                        test_result.extend(fail_result)
+            parse_pass = True
+        except Exception, e:
+            logging.error(u'解析测试结果出错')
+            logging.error(traceback.format_exc())
+            
         # 测试失败
-        if len(test_result) > 0:
-            # 发送QQ通知
-            msg = u'Alert!!!,网站测试未通过,详情见邮件\n'
-            for r in test_result:
-                msg = msg + r + '\n'
+        if parse_pass:
+            if len(test_result) > 0:
+                # 发送QQ通知
+                msg = u'Alert!!!,网站测试未通过,详情见邮件\n'
+                for r in test_result:
+                    msg = msg + r + '\n'
+                msg = msg + u'测试用时:%s\n' % result_parse.total_spend_time
+                msg = msg + u'详细内容见邮件附件'
+                self.send_clipboard_msg(msg)
+                self.send_qq_msg()
+                msg = msg.replace('\n', '<br />')
+                msg = msg.replace(' ', '&nbsp;')
+                for email in sc_setting.error_notify_email:
+                    self.send_mail(email, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' 网站测试未通过', msg)
+            else:
+                msg = u'测试用时:%s\n' % result_parse.total_spend_time
+                for email in sc_setting.status_notify_email:
+                    self.send_mail(email, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' 网站测试通过', msg)
+        else:
+            msg = u'Alert!!!,网站解析结果出错,详情见邮件或查看程序日志\n'
             self.send_clipboard_msg(msg)
             self.send_qq_msg()
-        else:
-            # 发送运行通知
-            pass
-    
+            for email in sc_setting.status_notify_email:
+                    self.send_mail(email, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' 网站测试结果解析出错', msg)
     
     def send_qq_msg(self):
         self.msg_handle = win32gui.FindWindow('ChatBox_PreviewWnd', None)
@@ -179,10 +196,11 @@ class SiteRunner(object):
                 # txt1.replace_header('Content-Transfer-Encoding', 'quoted-printable')  # 否则邮件原文看不懂，但并不影响读信
                 msg.attach(txt1)
                 # 带附件
-                att1 = MIMEText(open('/tmp/mall_cas_not_in_dict.csv', 'rb').read(), 'base64', 'utf-8')
-                att1["Content-Type"] = 'application/octet-stream'
-                att1["Content-Disposition"] = 'attachment; filename="mall_cas_not_in_dict.csv"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
-                msg.attach(att1)
+                if os.path.exists(sc_setting.test_result_path):
+                    att1 = MIMEText(open(sc_setting.test_result_path, 'rb').read(), 'base64', 'utf-8')
+                    att1["Content-Type"] = 'application/octet-stream'
+                    att1["Content-Disposition"] = 'attachment; filename="TestResult.xml"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
+                    msg.attach(att1)
                 msg['to'] = email
                
                 msg['from'] = 'guoqiang.zhang@molbase.com'
@@ -203,12 +221,42 @@ class SiteRunner(object):
                 logging.error(u"邮件发送失败,%s", e)
                 logging.error(traceback.format_exc())
     
-    
+    def start_monitor(self):
+        logging.info(u"启动网站检测应用")
+        while True:
+            logging.info(u"开始对网站进行相应的检测")
+            try:
+                if os.path.exists(sc_setting.test_result_path):
+                    logging.info(u'删除测试结果文件:%s', sc_setting.test_result_path)
+                    os.remove(sc_setting.test_result_path)
+                self.start_check()
+                # 判断程序是否运行完成
+                counter = 0
+                while True:
+                    counter += 1
+                    if os.path.exists(sc_setting.test_result_path):
+                        break
+                    elif counter >= 1200:
+                        raise Exception('程序运行时间超过20分钟')
+                        break
+                    if counter % 30 == 0:
+                        logging.info(u'正在对网站进行测试验证...')
+                    time.sleep(1)
+                self.parse_xml()
+            except Exception, e:
+                logging.error(u'检测网站程序运行出错')
+                logging.error(traceback.format_exc())
+                
+            logging.info(u"完成对网站数据的检测")
+            #break
+            time.sleep(60*10)
     
 
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     logging.basicConfig(format='%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s')
-    define("logfile", default="D:/log/nmr.log", help="NSQ topic")
+    define("logfile", default="D:/log/site_check.log", help="NSQ topic")
     options.parse_command_line()
     logfile = options.logfile
     
@@ -226,4 +274,6 @@ if __name__ == '__main__':
     # sr.send_clipboard_msg()
     # sr.send_qq_msg()
     # sr.parse_xml()
+    sr.start_monitor()
+    # logging.info(os.path.exists(sc_setting.test_result_path))
     logging.info(u'程序运行完成')

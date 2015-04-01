@@ -3,6 +3,10 @@ import logging
 import xml.sax
 from tornado.options import define, options
 import sys
+import os
+import datetime
+import time
+import sc_setting
 
 class ResultParse(xml.sax.ContentHandler):
     def __init__(self):
@@ -19,15 +23,16 @@ class ResultParse(xml.sax.ContentHandler):
         self.current_data = tag
         # logging.info(tag)
         if tag == "test-suite":
-            ttype = attributes['type']
-            name = attributes['name']
-            spend_time = attributes['time']
+            ttype = attributes.get('type', 'NoType')
+            name = attributes.get('name', 'NoName')
+            spend_time = attributes.get('time', 0)
+            
             if ttype == 'Assembly':
+                self.total_spend_time = spend_time
                 pass
             elif ttype == 'Namespace':
                 # 总的测试结果
                 self.test_deep = 1
-                self.total_spend_time = spend_time
             elif ttype == 'TestFixture':
                 self.test_deep = 2
                 self.test_result[name] = {}
@@ -37,9 +42,9 @@ class ResultParse(xml.sax.ContentHandler):
                 self.test_result[self.parent_name][name] = []
                 self.current_name = name
         if tag == 'test-case':
-            name = attributes['name']
-            success = attributes['success']
-            spend_time = attributes['time']
+            name = attributes.get('name', '没有名称')
+            success = attributes.get('success', 'False')
+            spend_time = attributes.get('time', 0)
             self.current_result['name'] = name
             self.current_result['success'] = success
             self.current_result['spend_time'] = spend_time
@@ -87,7 +92,12 @@ if (__name__ == "__main__"):
     # 重写 ContextHandler
     result_parse = ResultParse()
     parser.setContentHandler(result_parse)
-    parser.parse("TestResult.xml")
+    target_path = u'D:/TestResult.%s.xml' % datetime.datetime.now().strftime('%Y.%m.%d %H.%M.%S')
+    target_path = u'D:/TestResult%s.xml' % int(time.time()) 
+    open(target_path, 'wb').write(open(sc_setting.test_result_path, 'rb').read())
+    logging.info(u"测试结果:%s", os.path.exists(sc_setting.test_result_path))
+    logging.info(u'TargetPath:%s', target_path)
+    parser.parse(sc_setting.test_result_path)
     # logging.info(Handler.test_result)
     for key in result_parse.test_result:
         logging.info(u"测试节点名称:%s", key)
