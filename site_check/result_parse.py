@@ -33,20 +33,23 @@ class ResultParse(xml.sax.ContentHandler):
             elif ttype == 'Namespace':
                 # 总的测试结果
                 self.test_deep = 1
+                self.parent_name=''
+                self.current_name=''
             elif ttype == 'TestFixture':
                 self.test_deep = 2
                 self.test_result[name] = {}
                 self.parent_name = name
+                self.current_name=''
             else:
                 self.test_deep = 3
                 self.test_result[self.parent_name][name] = []
                 self.current_name = name
-        if tag == 'test-case':
+        if tag == 'test-case' and self.current_name!='':
             name = attributes.get('name', '没有名称')
-            success = attributes.get('success', 'False')
+            result = attributes.get('result', 'Success')
             spend_time = attributes.get('time', 0)
             self.current_result['name'] = name
-            self.current_result['success'] = success
+            self.current_result['result'] = result
             self.current_result['spend_time'] = spend_time
             self.current_result['msg'] = ''
             self.test_result[self.parent_name][self.current_name].append(self.current_result)
@@ -106,7 +109,7 @@ if (__name__ == "__main__"):
         for key1 in keys:
             logging.info(u'测试组名称:%s', key1)
             for value in result_parse.test_result[key][key1]:
-                logging.info(u"name:%s result:%s msg:%s", value['name'], value['success'], value['msg'])
+                logging.info(u"name:%s result:%s msg:%s", value['name'], value['result'], value['msg'])
                 
     
     

@@ -4,6 +4,7 @@ import win32gui
 import win32ui
 import win32con
 import win32api
+import win32com.client
 import time
 import win32clipboard
 import xml.sax
@@ -58,17 +59,55 @@ class SiteRunner(object):
         width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
         height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
         logging.info(u'屏幕分辨率:%s x %s', width, height)
+        # 关闭程序, 解决持续运行中程序不正确的问题
+        
+        while True:
+            self.m_handle = win32gui.FindWindow('WindowsForms10.Window.8.app.0.33c0d9d', None)
+            if self.m_handle == 0:
+                break
+            logging.info(u'关闭应用程序:%x', self.m_handle)
+            try:
+                
+                win32gui.SetForegroundWindow(self.m_handle)
+                win32gui.PostMessage(self.m_handle, win32con.WM_CLOSE, 0, 0)
+            except Exception, e:
+                logging.error(u'关闭程序出错')
+                logging.error(traceback.format_exc())
+            time.sleep(0.5)
+        '''
+        # 关闭浏览器窗口
+        while True:
+            self.chrome_handle = win32gui.FindWindow('Chrome_WidgetWin_1', 'D:\192.168.13.200\测试\AutoTest\MolbaseOnlineAutoTest\MolbaseOnlineAutoTest\bin\Debug\chromedriver.exe')
+            if self.chrome_handle == 0:
+                break
+            logging.info(u'关闭浏览器窗口:%x', self.chrome_handle)
+            win32gui.SetForegroundWindow(self.chrome_handle)
+            win32gui.PostMessage(self.chrome_handle, win32con.WM_CLOSE, 0, 0)
+        # 关闭Windoe Console 连接器窗口
+        while True:
+            self.console_handle = win32gui.FindWindow('ConsoleWindowClass', None)
+            if self.console_handle == 0:
+                break
+            logging.info(u'关闭测试浏览器驱动连接窗口:%x', self.console_handle)
+            win32gui.SetForegroundWindow(self.console_handle)
+            win32gui.PostMessage(self.console_handle, win32con.WM_CLOSE, 0, 0)
+        '''
         # main_handle
         while True:
             self.m_handle = win32gui.FindWindow('WindowsForms10.Window.8.app.0.33c0d9d', None)
             if self.m_handle == 0:
                 logging.info(u"启动测试程序");
                 win32api.ShellExecute(0, 'open', sc_setting.nunit_app_path, '', '', 1)
-                time.sleep(10)
+                time.sleep(8)
             else:
                 break
-        logging.info(u'程序主窗口句柄:%x', self.m_handle);
-        win32gui.SetForegroundWindow(self.m_handle)  
+        self.f_handle = win32gui.GetForegroundWindow()
+        logging.info(u'程序主窗口句柄:%x  前置窗口句柄:%x', self.m_handle, self.f_handle);
+        
+        shell = win32com.client.Dispatch('WScript.Shell')
+        shell.SendKeys('%')
+        win32gui.SetForegroundWindow(self.m_handle)
+        
         # mainframe_handle
         # self.mf_handle = find_subHandle(self.m_handle, [('WindowsForms10.Window.8.app.0.33c0d9d', 0)])
         # logging.info('Main Frame句柄:%x', self.mf_handle);
@@ -81,7 +120,11 @@ class SiteRunner(object):
         
         # self.stop_handle = find_subHandle(self.m_handle, [('WindowsForms10.Window.8.app.0.33c0d9d', 0), ('WindowsForms10.Window.8.app.0.33c0d9d', 0), ('WindowsForms10.BUTTON.app.0.33c0d9d', 1)]);
         # logging.info('Stop Button句柄:%x', self.stop_handle);
-        
+        logging.info(u'取消程序热点')
+        win32api.keybd_event(27, 0, 0, 0)
+        win32api.keybd_event(27, 0, win32con.KEYEVENTF_KEYUP, 0)
+        time.sleep(0.5)
+        logging.info(u'点击f5,开始测试')
         win32api.keybd_event(116, 0, 0, 0)
         win32api.keybd_event(116, 0, win32con.KEYEVENTF_KEYUP, 0)
         time.sleep(0.5)
@@ -111,8 +154,10 @@ class SiteRunner(object):
                     logging.info(u'测试组名称:%s', key1)
                     fail_result = []
                     for value in result_parse.test_result[key][key1]:
-                        if value['success'] != 'True':
-                            logging.info(u"name:%s result:%s msg:%s", value['name'], value['success'], value['msg'])
+                        if value['result'].lower() in ['success','ignored','cancelled']:
+                            pass
+                        else:
+                            logging.info(u"name:%s result:%s msg:%s", value['name'], value['result'], value['msg'])
                             fail_result.append(u'    测试用例:%s 未通过测试' % value['name'])
                     if len(fail_result) > 0:
                         test_result.append(key)
@@ -131,23 +176,23 @@ class SiteRunner(object):
                 for r in test_result:
                     msg = msg + r + '\n'
                 msg = msg + u'测试用时:%s\n' % result_parse.total_spend_time
-                msg = msg + u'详细内容见邮件附件'
+                # msg = msg + u'详细内容见邮件附件'
                 self.send_clipboard_msg(msg)
                 self.send_qq_msg()
                 msg = msg.replace('\n', '<br />')
                 msg = msg.replace(' ', '&nbsp;')
                 for email in sc_setting.error_notify_email:
-                    self.send_mail(email, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' 网站测试未通过', msg)
+                    self.send_mail(email, u'%s 网站测试未通过' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), msg)
             else:
                 msg = u'测试用时:%s\n' % result_parse.total_spend_time
                 for email in sc_setting.status_notify_email:
-                    self.send_mail(email, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' 网站测试通过', msg)
+                    self.send_mail(email, u'%s 网站测试通过' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') , msg)
         else:
             msg = u'Alert!!!,网站解析结果出错,详情见邮件或查看程序日志\n'
             self.send_clipboard_msg(msg)
             self.send_qq_msg()
             for email in sc_setting.status_notify_email:
-                    self.send_mail(email, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' 网站测试结果解析出错', msg)
+                    self.send_mail(email, u'%s 网站测试结果解析出错' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), msg)
     
     def send_qq_msg(self):
         self.msg_handle = win32gui.FindWindow('ChatBox_PreviewWnd', None)
@@ -202,7 +247,6 @@ class SiteRunner(object):
                     att1["Content-Disposition"] = 'attachment; filename="TestResult.xml"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
                     msg.attach(att1)
                 msg['to'] = email
-               
                 msg['from'] = 'guoqiang.zhang@molbase.com'
                 msg['subject'] = title
                 # 发送邮件
@@ -248,8 +292,8 @@ class SiteRunner(object):
                 logging.error(traceback.format_exc())
                 
             logging.info(u"完成对网站数据的检测")
-            #break
-            time.sleep(60*10)
+            # break
+            time.sleep(1)
     
 
 if __name__ == '__main__':
@@ -263,17 +307,17 @@ if __name__ == '__main__':
     fmt = '%(asctime)s-%(module)s:%(lineno)d %(levelname)s %(message)s'
     handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=100 * 1024 * 1024, backupCount=10)  # ʵ��handler
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(fmt)  # ʵ��formatter
-    handler.setFormatter(formatter)  # Ϊhandler���formatter
+    formatter = logging.Formatter(fmt)
+    handler.setFormatter(formatter)
     logging.getLogger('').addHandler(handler)
     logging.info(u'写入的日志文件为:%s', logfile)
    
     sr = SiteRunner()
     # sr.start_check()
-    # sr.parse_xml()
+    sr.parse_xml()
     # sr.send_clipboard_msg()
     # sr.send_qq_msg()
     # sr.parse_xml()
-    sr.start_monitor()
+    # sr.start_monitor()
     # logging.info(os.path.exists(sc_setting.test_result_path))
     logging.info(u'程序运行完成')
