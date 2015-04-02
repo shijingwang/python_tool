@@ -154,7 +154,7 @@ class SiteRunner(object):
                     logging.info(u'测试组名称:%s', key1)
                     fail_result = []
                     for value in result_parse.test_result[key][key1]:
-                        if value['result'].lower() in ['success','ignored','cancelled']:
+                        if value['result'].lower() in ['success', 'ignored', 'cancelled']:
                             pass
                         else:
                             logging.info(u"name:%s result:%s msg:%s", value['name'], value['result'], value['msg'])
@@ -247,6 +247,7 @@ class SiteRunner(object):
                     att1["Content-Disposition"] = 'attachment; filename="TestResult.xml"'  # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
                     msg.attach(att1)
                 msg['to'] = email
+               
                 msg['from'] = 'guoqiang.zhang@molbase.com'
                 msg['subject'] = title
                 # 发送邮件
@@ -314,10 +315,11 @@ if __name__ == '__main__':
    
     sr = SiteRunner()
     # sr.start_check()
-    sr.parse_xml()
+    # sr.parse_xml()
     # sr.send_clipboard_msg()
     # sr.send_qq_msg()
     # sr.parse_xml()
-    # sr.start_monitor()
+    # sr.send_mail('guoqiang.zhang@molbase.com', u'Test', u'邮件内容')
+    sr.start_monitor()
     # logging.info(os.path.exists(sc_setting.test_result_path))
     logging.info(u'程序运行完成')
